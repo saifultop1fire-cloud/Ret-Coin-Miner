@@ -1,311 +1,325 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>RET Coin Mining</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
-    *{ font-family: 'Outfit', sans-serif; }
-    .font-mono{ font-family: 'JetBrains Mono', monospace !important; }
-    body { background-color: #0A0B14; color: white; margin: 0; overflow-x: hidden; }
-    @keyframes retRotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
-    @keyframes retFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-    .scrollbar-thin::-webkit-scrollbar{width:4px}
-    .scrollbar-thin::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:999px}
-  </style>
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RET Coin Miner</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0A0B14;--surface:#151729;--surface2:#1C1E32;--purple:#8B5CF6;--cyan:#06FFA5;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:#fff;font-family:'Outfit',system-ui;overflow-x:hidden}
+.font-mono{font-family:'JetBrains Mono',monospace!important}
+#app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}
+.header{position:sticky;top:var(--safe-top);z-index:40;backdrop-filter:blur(18px);background:rgba(10,11,20,.85);border-bottom:1px solid rgba(255,255,255,.06);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:50;padding:0 12px calc(8px + var(--safe-bottom)) 12px;pointer-events:none}
+.bottom-nav-inner{pointer-events:auto;background:rgba(21,23,41,.92);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;display:flex;justify-content:space-around;padding:6px;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:14px;transition:.3s;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer}
+.nav-btn.active{background:#fff;color:#000;box-shadow:0 4px 16px rgba(255,255,255,.15)}
+.nav-btn span{font-size:10px;font-weight:700;letter-spacing:.05em}
+.coin-center{width:140px;height:140px;animation:rotate 8s linear infinite, float 3s ease-in-out infinite}
+@keyframes rotate{to{transform:rotate(360deg)}} 
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(180deg)}}
+@keyframes ping{75%,100%{transform:scale(1.2);opacity:0}}
+.loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080A14;position:relative;overflow:hidden}
+.btn-primary{width:100%;height:54px;border-radius:16px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 24px rgba(139,92,246,.35),inset 0 1px 0 rgba(255,255,255,.15);transition:.15s}
+.btn-primary:active{transform:scale(.98)}
+.card{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:16px}
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13px;z-index:60;animation:slideUp .3s ease;max-width:90%;text-align:center}
+@keyframes slideUp{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fadeIn{animation:fadeIn .3s ease}
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div id="loading" class="loading">
+  <div style="position:absolute;top:-20%;left:-10%;width:70%;height:50%;background:rgba(139,92,246,.2);filter:blur(120px);border-radius:999px"></div>
+  <div style="width:112px;height:112px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
+    <div style="position:absolute;inset:0;border-radius:999px;background:linear-gradient(135deg,#1C1E32,#151729);border:1px solid rgba(255,255,255,.1);box-shadow:0 0 40px rgba(139,92,246,.3)"></div>
+    <div style="position:absolute;inset:0;border-radius:999px;border:1px solid rgba(139,92,246,.3);animation:ping 2s cubic-bezier(0,0,.2,1) infinite"></div>
+    <img src="https://i.ibb.co.com/5XQzjzwF/ret-coin-logo-256x256.png" style="width:92px;height:92px;position:relative;z-index:1;animation:rotate 8s linear infinite;object-fit:contain" />
+  </div>
+  <h1 style="font-size:26px;font-weight:900;letter-spacing:-.02em">RET Coin</h1>
+  <p class="font-mono" style="font-size:11px;letter-spacing:.22em;color:rgba(255,255,255,.4);margin-bottom:36px">DECENTRALIZED MINING PROTOCOL</p>
+  <div style="width:280px;display:flex;flex-direction:column;gap:10px">
+    <div id="load-steps"></div>
+    <div style="margin-top:16px"><div style="display:flex;justify-content:space-between;font-size:11px" class="font-mono"><span style="color:rgba(255,255,255,.4)">SECURE BOOT</span><span id="load-pct">0%</span></div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;margin-top:6px"><div id="load-bar" style="height:100%;background:linear-gradient(90deg,#8B5CF6,#06FFA5);width:0%;transition:.2s"></div></div></div>
+  </div>
+</div>
 
-  <script type="text/babel">
-    const { useState, useEffect } = React;
-    const { Pickaxe, Zap, Hexagon, Users, Wallet, Check, ShieldCheck, Play, ChevronRight, Clock } = lucideReact;
-    
-    // নতুন লোগো লিংক
-    const LOGO_URL = "https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png";
-    const MANIFEST_URL = "https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json";
+<div id="app" style="display:none">
+  <div class="header">
+    <div style="display:flex;gap:10px;align-items:center">
+      <div style="position:relative"><img id="userPhoto" src="https://i.pravatar.cc/100?img=32" style="width:38px;height:38px;border-radius:999px;border:1.5px solid #8B5CF6"/><div style="position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:999px;background:#06FFA5;border:2px solid #0A0B14;display:flex;align-items:center;justify-content:center"><div style="width:5px;height:5px;background:#000;border-radius:999px"></div></div></div>
+      <div style="line-height:1.1"><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:4px"><span id="userName">Ret Mine</span> <span style="color:#06FFA5">✔</span></div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)">@ret_mine</div></div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div style="display:flex;align-items:center;gap:6px;background:#151729;border:1px solid rgba(255,255,255,.06);padding:6px 10px;border-radius:999px"><img src="https://i.ibb.co.com/5XQzjzwF/ret-coin-logo-256x256.png" style="width:18px;height:18px;object-fit:contain"/><span id="topBalance" style="font-size:13px;font-weight:800">0.000</span><span style="font-size:10px;color:rgba(255,255,255,.4);font-weight:800">RET</span></div>
+      <div id="lvlBadge" style="height:28px;padding:0 10px;border-radius:999px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800">LVL 1</div>
+    </div>
+  </div>
 
-    // ফায়ারবেস কনফিগ
-    const firebaseConfig = {
-      apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
-      authDomain: "ret-coin-mine.firebaseapp.com",
-      databaseURL: "https://ret-coin-mine-default-rtdb.firebaseio.com",
-      projectId: "ret-coin-mine",
-      storageBucket: "ret-coin-mine.firebasestorage.app",
-      messagingSenderId: "417445689965",
-      appId: "1:417445689965:web:023edebe16193cc1e11d64"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // লেভেল ক্যালকুলেশন ফর্মুলা (আপনার লজিক)
-    const getLevelData = (balance) => {
-      if (balance < 10) return { level: 1, nextTarget: 10, rate: 0.01 };
-      if (balance < 50) return { level: 2, nextTarget: 50, rate: 0.02 };
-      if (balance < 200) return { level: 3, nextTarget: 200, rate: 0.05 };
-      if (balance < 500) return { level: 4, nextTarget: 500, rate: 0.1 };
-      const extraLevel = Math.floor((balance - 500) / 500);
-      return { level: 5 + extraLevel, nextTarget: 500 + ((extraLevel + 1) * 500), rate: 0.1 + (extraLevel * 0.1) };
-    };
-
-    function App() {
-      const tg = window.Telegram?.WebApp;
-      const [activeTab, setActiveTab] = useState("mine");
-      const [balance, setBalance] = useState(0);
-      const [walletAddress, setWalletAddress] = useState(null);
-      const [userId, setUserId] = useState(null);
-      const [toast, setToast] = useState(null);
-
-      useEffect(() => {
-        if (tg) tg.expand();
-        
-        // Telegram User Init & Firebase Load
-        if (tg?.initDataUnsafe?.user) {
-          const uid = tg.initDataUnsafe.user.id.toString();
-          setUserId(uid);
-          const userRef = db.ref('users/' + uid);
-          
-          userRef.on('value', (snapshot) => {
-            if (!snapshot.exists()) {
-              userRef.set({ name: tg.initDataUnsafe.user.first_name, balance: 0, banned: false });
-            } else {
-              const data = snapshot.val();
-              if (data.banned) { document.body.innerHTML = "<h1 style='color:red;text-align:center;margin-top:50px'>BANNED</h1>"; return; }
-              setBalance(data.balance || 0);
-              if(data.wallet) setWalletAddress(data.wallet);
-            }
-          });
-        }
-
-        // TON Connect Init
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-          manifestUrl: MANIFEST_URL,
-          buttonRootId: 'ton-connect-btn'
-        });
-
-        tonConnectUI.onStatusChange((wallet) => {
-          if (wallet && userId) {
-            setWalletAddress(wallet.account.address);
-            db.ref('users/' + userId).update({ wallet: wallet.account.address });
-          }
-        });
-      }, [userId]);
-
-      const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
-
-      const handleClaim = () => {
-        if (!userId) return;
-        const levelData = getLevelData(balance);
-        const newBalance = balance + levelData.rate;
-        
-        db.ref('users/' + userId).update({ balance: newBalance }).then(() => {
-          showToast(`সফলভাবে ${levelData.rate} RET ক্লেইম হয়েছে!`);
-          if (tg) tg.sendData(JSON.stringify({ action: "claim", amount: levelData.rate }));
-        });
-      };
-
-      const handleWithdraw = () => {
-        if (!walletAddress) return showToast("আগে ওয়ালেট কানেক্ট করুন!");
-        if (balance < 100) return showToast("সর্বনিম্ন ১০০ RET প্রয়োজন!");
-        
-        const amount = prompt(`আপনার ব্যালেন্স: ${balance.toFixed(2)} RET\nকত উইথড্র করতে চান?`);
-        if (!amount || isNaN(amount) || amount <= 0 || amount > balance) return showToast("সঠিক পরিমাণ দিন!");
-
-        db.ref('withdrawals').push({
-          userId, userName: tg?.initDataUnsafe?.user?.first_name || "User",
-          amount: parseFloat(amount), wallet: walletAddress, status: "pending", timestamp: Date.now()
-        }).then(() => {
-          db.ref('users/' + userId).update({ balance: balance - parseFloat(amount) });
-          showToast("উইথড্র রিকোয়েস্ট সফল!");
-          if (tg) tg.sendData(JSON.stringify({ action: "withdraw", amount: parseFloat(amount), wallet: walletAddress }));
-        });
-      };
-
-      const levelData = getLevelData(balance);
-      let prevTarget = levelData.level === 1 ? 0 : (levelData.level === 2 ? 10 : (levelData.level === 3 ? 50 : (levelData.level === 4 ? 200 : 500 + ((levelData.level - 5) * 500))));
-      const progressPercent = Math.min(100, Math.max(0, ((balance - prevTarget) / (levelData.nextTarget - prevTarget)) * 100));
-
-      return (
-        <div className="min-h-screen bg-[#0A0B14] flex justify-center">
-          <div className="w-full max-w-[430px] relative flex flex-col min-h-screen bg-[#0A0B14] overflow-x-hidden">
-            
-            {/* HEADER */}
-            <header className="sticky top-0 z-40 bg-[#0A0B14]/80 backdrop-blur-md border-b border-white/5 px-4 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-[38px] h-[38px] rounded-full p-[1.5px] bg-gradient-to-br from-[#8B5CF6] to-[#06FFA5]">
-                  <img src={LOGO_URL} alt="Logo" className="w-full h-full rounded-full object-cover bg-black" />
-                </div>
-                <div>
-                  <div className="text-[14px] font-bold flex items-center gap-1">Ret Mine <ShieldCheck size={14} className="text-[#06FFA5]"/></div>
-                  <div className="text-[10px] text-white/40 font-mono">@ret_mine</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#151729] border border-white/5">
-                <img src={LOGO_URL} className="w-4 h-4" />
-                <span className="text-[13px] font-bold">{balance.toFixed(2)} RET</span>
-              </div>
-            </header>
-
-            {/* MAIN CONTENT */}
-            <main className="flex-1 px-4 pt-4 pb-24">
-              
-              {/* MINE TAB */}
-              {activeTab === "mine" && (
-                <div className="space-y-4">
-                  <div className="relative rounded-[28px] bg-[#151729] border border-white/[0.06] p-5 overflow-hidden">
-                    <div className="absolute -top-[60px] -right-[60px] w-[200px] h-[200px] bg-[#8B5CF6]/15 blur-[40px] rounded-full pointer-events-none"></div>
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center"><Zap size={14} className="text-white/60"/></div>
-                        <span className="text-[12px] font-mono tracking-widest text-white/40">MINING CORE</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#06FFA5] bg-[#06FFA5]/10 px-2.5 py-1 rounded-full border border-[#06FFA5]/20">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#06FFA5] animate-pulse"></div> ACTIVE
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                      <div className="relative w-[220px] h-[220px] flex items-center justify-center">
-                        <svg className="absolute inset-0 w-full h-full -rotate-90 z-0" viewBox="0 0 220 220">
-                          <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
-                          <circle cx="110" cy="110" r="98" fill="none" stroke="url(#grad)" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(progressPercent/100)*615} 615`} className="transition-all duration-1000" />
-                          <defs>
-                            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#8B5CF6" /><stop offset="100%" stopColor="#06FFA5" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="absolute inset-[30px] rounded-full bg-gradient-to-br from-[#8B5CF6]/08 to-[#06FFA5]/06 blur-[0.5px] border border-white/[0.03] z-0 pointer-events-none"></div>
-                        <img src={LOGO_URL} className="relative z-10 w-[140px] h-[140px] object-contain animate-[retRotate_8s_linear_infinite] drop-shadow-[0_0_30px_rgba(139,92,246,0.6)]" />
-                      </div>
-
-                      <div className="mt-7 text-center w-full">
-                        <div className="text-[11px] tracking-[0.18em] text-white/40 font-mono mb-1">CURRENT BALANCE</div>
-                        <div className="flex items-center justify-center gap-2">
-                          <img src={LOGO_URL} className="w-7 h-7" />
-                          <span className="text-[32px] font-black tracking-tight tabular-nums">{balance.toFixed(5)}</span>
-                          <span className="text-[15px] font-bold text-white/40 mt-1">RET</span>
-                        </div>
-                        <div className="mt-1 flex items-center justify-center gap-3 text-[12px] font-mono">
-                          <span className="text-[#06FFA5] font-bold">Level {levelData.level}</span>
-                          <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                          <span className="text-white/60 flex items-center gap-1"><Zap size={12}/> {levelData.rate} RET/h</span>
-                        </div>
-                        <button onClick={handleClaim} className="mt-5 w-full h-[54px] rounded-[16px] bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] font-bold text-[15px] tracking-wide shadow-[0_8px_24px_rgba(139,92,246,0.35),inset_0_1px_0_rgba(255,255,255,0.15)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
-                          <Play size={18} /> CLAIM RET
-                        </button>
-                        <p className="mt-2.5 text-[11px] text-white/30 font-mono">Auto-mining continues even when offline</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[20px] bg-gradient-to-br from-[#1C1E32] to-[#151729] border border-white/[0.06] p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-[#8B5CF6]/20 to-[#06FFA5]/20 border border-white/10 flex items-center justify-center"><Hexagon size={22} className="text-[#8B5CF6]"/></div>
-                      <div>
-                        <div className="text-[12px] text-white/40 font-mono">NEXT LEVEL PROGRESS</div>
-                        <div className="text-[16px] font-bold flex items-center gap-2">Level {levelData.level} <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/60">to {levelData.level + 1}</span></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* MINERS TAB */}
-              {activeTab === "miners" && (
-                <div className="space-y-4 animate-[fadeIn_0.3s_ease]">
-                  <div className="rounded-[20px] bg-gradient-to-br from-[#1C1E32] to-[#151729] border border-white/10 p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[13px] font-mono text-white/40">NEXT LEVEL PROGRESS</span>
-                      <span className="text-[12px] font-bold">{levelData.level} → {levelData.level + 1}</span>
-                    </div>
-                    <div className="h-2 w-full bg-black/30 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#06FFA5] rounded-full" style={{width: `${progressPercent}%`}}></div>
-                    </div>
-                    <div className="mt-2 flex justify-between text-[11px] font-mono text-white/40">
-                      <span>{balance.toFixed(2)} / {levelData.nextTarget} RET</span>
-                      <span>{(levelData.nextTarget - balance).toFixed(2)} RET needed</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* WALLET TAB */}
-              {activeTab === "wallet" && (
-                <div className="space-y-4 animate-[fadeIn_0.3s_ease]">
-                  <div className="rounded-[24px] bg-[#151729] border border-white/[0.06] p-5 relative overflow-hidden">
-                    <div className="text-[11px] tracking-widest font-mono text-white/40 mb-3">IN-APP BALANCE</div>
-                    <div className="flex items-center gap-3">
-                      <img src={LOGO_URL} className="w-11 h-11" />
-                      <div>
-                        <div className="text-[28px] font-black tabular-nums leading-none">{balance.toFixed(5)} <span className="text-[16px] text-white/40 font-bold">RET</span></div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mt-5">
-                      <button onClick={handleWithdraw} className="h-11 rounded-[12px] bg-white text-black font-bold text-[13px]">Withdraw</button>
-                      <button onClick={() => showToast("Swap RET to TON coming soon")} className="h-11 rounded-[12px] bg-white/10 border border-white/10 font-bold text-[13px]">Swap</button>
-                    </div>
-                  </div>
-
-                  <div className="rounded-[20px] bg-[#1C1E32] border border-white/[0.06] p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-[12px] bg-[#0098EA] flex items-center justify-center font-black text-[12px]">TON</div>
-                        <div>
-                          <div className="text-[14px] font-bold">TON Wallet</div>
-                          <div className="text-[11px] text-white/40 font-mono">{walletAddress ? walletAddress.substring(0,6) + "..." + walletAddress.slice(-4) : "Not connected"}</div>
-                        </div>
-                      </div>
-                      <div id="ton-connect-btn"></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </main>
-
-            {/* BOTTOM NAVIGATION */}
-            <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-3 pb-[calc(8px+var(--safe-area-inset-bottom,0px))] pt-2 pointer-events-none">
-              <div className="pointer-events-auto mx-auto rounded-[20px] bg-[#151729]/90 backdrop-blur-[20px] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] flex items-center justify-around p-1.5">
-                {[
-                  { id: "mine", label: "Mine", icon: Pickaxe },
-                  { id: "miners", label: "Miners", icon: Hexagon },
-                  { id: "wallet", label: "Wallet", icon: Wallet }
-                ].map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`relative flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-[14px] transition-all duration-300 ${isActive ? "bg-white text-black shadow-[0_4px_16px_rgba(255,255,255,0.15)]" : "text-white/40 hover:text-white/70"}`}>
-                      <tab.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                      <span className={`text-[10px] font-bold tracking-wide ${isActive ? "text-black" : ""}`}>{tab.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-
-            {/* TOAST */}
-            {toast && (
-              <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-[#06FFA5] text-black px-4 py-2 rounded-full text-[12px] font-bold shadow-lg z-[100] animate-[fadeIn_0.3s_ease]">
-                {toast}
-              </div>
-            )}
+  <main style="padding:16px 16px 96px 16px">
+    <div id="tab-mine" class="fadeIn">
+      <div class="card" style="border-radius:28px;padding:20px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,.5),transparent)"></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:24px"><span class="font-mono" style="font-size:11px;letter-spacing:.15em;color:rgba(255,255,255,.4)">MINING CORE • ACTIVE</span><span class="font-mono" style="font-size:11px;color:#06FFA5;background:rgba(6,255,165,.1);border:1px solid rgba(6,255,165,.2);padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;background:#06FFA5;border-radius:999px"></span><span id="hashRate">1.99 TH/s</span></span></div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div style="position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center">
+            <svg style="position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)" viewBox="0 0 220 220"><circle cx="110" cy="110" r="98" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/><circle id="mineProgress" cx="110" cy="110" r="98" fill="none" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-dasharray="615 615" stroke-dashoffset="0" style="transition:1s"/><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#06FFA5"/></linearGradient></defs></svg>
+            <div style="position:absolute;inset:22px;border-radius:999px;border:1px solid rgba(255,59,92,.25);pointer-events:none;box-shadow:inset 0 0 20px rgba(255,59,92,.08)"></div>
+            <div id="coinWrap" style="position:relative;z-index:2;cursor:pointer"><img id="mainCoin" src="https://i.ibb.co.com/5XQzjzwF/ret-coin-logo-256x256.png" class="coin-center" alt="RET" style="width:140px;height:140px;object-fit:contain" /></div>
+            <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:3;background:#0A0B14;border:1px solid rgba(255,255,255,.1);padding:4px 12px;border-radius:999px;font-size:11px" class="font-mono">⚡ <span id="hashBottom">1.99</span> TH/S</div>
+          </div>
+          <div style="margin-top:28px;text-align:center;width:100%">
+            <div class="font-mono" style="font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.4);margin-bottom:6px">UNCLAIMED REWARD</div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px"><img src="https://i.ibb.co.com/5XQzjzwF/ret-coin-logo-256x256.png" style="width:28px;height:28px;object-fit:contain"/><span id="unclaimed" style="font-size:32px;font-weight:900">0.00000</span><span style="font-size:15px;font-weight:700;color:rgba(255,255,255,.4)">RET</span></div>
+            <div class="font-mono" style="display:flex;justify-content:center;gap:12px;font-size:12px;color:rgba(255,255,255,.4);margin-top:6px"><span>≈ $<span id="usdVal">0.00</span></span><span style="width:4px;height:4px;background:rgba(255,255,255,.2);border-radius:999px;margin-top:6px"></span><span id="timer">00:00:00</span></div>
+            <button id="claimBtn" class="btn-primary" style="margin-top:20px">CLAIM RET • <span id="timerBtn">00:00:00</span></button>
+            <p class="font-mono" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.3)">Auto-mining continues even when offline</p>
           </div>
         </div>
-      );
-    }
+      </div>
 
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
-  </script>
-</body>
-</html>
+      <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#1C1E32,#151729)">
+        <div style="display:flex;gap:12px;align-items:center"><div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,255,165,.2));border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">⛏️</div><div><div class="font-mono" style="font-size:12px;color:rgba(255,255,255,.4)">CURRENT MINER</div><div style="font-size:16px;font-weight:800">Level <span id="minerLvl">1</span> <span style="font-size:11px;background:rgba(255,255,255,.1);padding:2px 6px;border-radius:6px" id="minerTh">0.53 TH/s</span></div></div></div>
+        <button onclick="switchTab('miners')" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.06);border:none;color:#fff;cursor:pointer">›</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="card"><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)">TOTAL MINED</div><div style="font-size:18px;font-weight:800" id="totalMined">0.00 RET</div><div style="font-size:11px;color:#06FFA5;margin-top:4px">+ Level based earnings</div></div>
+        <div class="card"><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)">REF BONUS</div><div style="font-size:18px;font-weight:800" id="refBonus">0.00 RET</div><div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">10% from friends</div></div>
+      </div>
+    </div>
+
+    <div id="tab-tasks" style="display:none" class="fadeIn">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><h2 style="font-size:16px;font-weight:800">🔥 Ad Lab</h2><span class="font-mono" style="font-size:11px;background:#1C1E32;border:1px solid rgba(255,255,255,.05);padding:4px 10px;border-radius:999px">Ads today: <span id="adsToday">0</span>/12</span></div>
+      <div id="adsList" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div class="card" style="margin-top:12px;background:rgba(28,30,50,.6);display:flex;gap:10px;align-items:center"><span>🛡️</span><span class="font-mono" style="font-size:11px;color:rgba(255,255,255,.5)">Ad rewards verified by Monetag • Zone IDs from Admin Panel • All data from Firebase</span></div>
+      <h2 style="margin-top:20px;margin-bottom:12px;font-size:16px;font-weight:800">🎯 Daily Streak</h2>
+      <div id="streakGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px"></div>
+    </div>
+
+    <div id="tab-miners" style="display:none" class="fadeIn">
+      <div class="card" style="background:linear-gradient(135deg,#1C1E32,#151729);border:1px solid rgba(255,255,255,.1)">
+        <div style="display:flex;justify-content:space-between"><span class="font-mono" style="font-size:12px;color:rgba(255,255,255,.4)">NEXT LEVEL PROGRESS - UNLIMITED</span><span style="font-size:12px;font-weight:800"><span id="lvlFrom">1</span> → <span id="lvlTo">2</span></span></div>
+        <div style="height:8px;background:rgba(0,0,0,.3);border-radius:999px;overflow:hidden;margin-top:10px"><div id="lvlProgress" style="height:100%;background:linear-gradient(90deg,#8B5CF6,#06FFA5);width:0%;transition:.5s"></div></div>
+        <div class="font-mono" style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-top:6px"><span id="lvlNeed">0 / 25 RET</span><span id="lvlRemain">25 RET needed</span></div>
+      </div>
+      <div id="minersList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;max-height:560px;overflow-y:auto"></div>
+    </div>
+
+    <div id="tab-friends" style="display:none" class="fadeIn">
+      <div style="border-radius:24px;background:linear-gradient(135deg,#8B5CF6,#4C1D95);padding:1px"><div style="border-radius:23px;background:linear-gradient(135deg,#1A1033,#151729);padding:16px"><div style="display:flex;justify-content:space-between"><div><h3 style="font-size:18px;font-weight:900">👥 Invite Squad</h3><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px;max-width:200px">Invite friends and earn 10% of their mining +100 RET instant</p></div><div style="width:48px;height:48px;border-radius:999px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center">🎁</div></div><div style="display:flex;gap:8px;margin-top:16px"><div style="flex:1;height:44px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;padding:0 12px;font-size:12px" class="font-mono" id="refLink">t.me/retcoin_bot?start=ref_...</div><button onclick="copyRef()" style="height:44px;width:44px;border-radius:12px;background:#fff;border:none;cursor:pointer">📋</button></div><button onclick="shareRef()" style="margin-top:12px;width:100%;height:48px;border-radius:12px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer">Invite Friends • +100 RET</button></div></div>
+      <div style="margin-top:16px"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><h3 style="font-weight:800">Your Squad (<span id="squadCount">0</span>)</h3><span class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)"><span id="squadEarned">0</span> RET earned</span></div><div id="squadList" style="display:flex;flex-direction:column;gap:10px"></div></div>
+    </div>
+
+    <div id="tab-wallet" style="display:none" class="fadeIn">
+      <div class="card" style="border-radius:24px;padding:20px;position:relative;overflow:hidden"><div style="position:absolute;top:0;right:0;width:120px;height:120px;background:rgba(139,92,246,.1);filter:blur(30px);border-radius:999px"></div><div class="font-mono" style="font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.4);margin-bottom:12px">IN-APP BALANCE</div><div style="display:flex;gap:12px;align-items:center"><img src="https://i.ibb.co.com/5XQzjzwF/ret-coin-logo-256x256.png" style="width:44px;height:44px;object-fit:contain"/><div><div style="font-size:28px;font-weight:900"><span id="walletBal">0.00000</span> <span style="font-size:16px;color:rgba(255,255,255,.4)">RET</span></div><div class="font-mono" style="font-size:12px;color:rgba(255,255,255,.4)">≈ $<span id="walletUsd">0.00</span> USD • LVL <span id="walletLvl">1</span></div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px"><button onclick="openWithdraw()" style="height:44px;border-radius:12px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer">Withdraw</button><button onclick="showToast('Swap RET to TON coming soon')" style="height:44px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.1);color:#fff;font-weight:800;cursor:pointer">Swap</button></div></div>
+      <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;border-radius:12px;background:#0098EA;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px">TON</div><div><div style="font-size:14px;font-weight:800">TON Wallet</div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)" id="tonStatus">Not connected</div></div></div><button id="tonBtn" onclick="toggleTon()" style="height:36px;padding:0 16px;border-radius:999px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer;font-size:12px">Connect</button></div>
+      <div id="verifyCard" class="card" style="margin-top:12px;background:linear-gradient(135deg,#1C1E32,#151729);border:1px solid rgba(255,176,32,.2)"><div style="display:flex;gap:12px"><div style="width:36px;height:36px;border-radius:999px;background:rgba(255,176,32,.15);border:1px solid rgba(255,176,32,.2);display:flex;align-items:center;justify-content:center">🛡️</div><div style="flex:1"><div style="font-size:14px;font-weight:800">Account Verification <span style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(255,176,32,.15);color:#FFB020">REQUIRED</span></div><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:6px;line-height:1.5">Pay 0.045 GRAM to verify humanity & enable withdrawals. Bypass available if you hold 5000+ RET or Genesis NFT.</p><div style="display:flex;gap:8px;margin-top:12px"><button onclick="verifyNow()" style="flex:1;height:40px;border-radius:10px;background:#FFB020;color:#000;font-weight:800;border:none;cursor:pointer;font-size:12px">Verify Now • 0.045 GRAM</button><div id="bypassInfo" style="height:40px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;font-size:11px" class="font-mono">... RET to bypass</div></div></div></div></div>
+      <div class="card" style="margin-top:12px;padding:12px"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span class="font-mono" style="font-size:11px;letter-spacing:.15em;color:rgba(255,255,255,.4)">PAYOUTS LIVE</span><span style="width:8px;height:8px;background:#06FFA5;border-radius:999px;display:inline-block"></span></div><div id="livePayouts" style="display:flex;flex-direction:column;gap:8px;max-height:110px;overflow:hidden"></div></div>
+    </div>
+  </main>
+
+  <div class="bottom-nav"><div class="bottom-nav-inner">
+    <button class="nav-btn active" data-tab="mine"><span style="font-size:18px">⛏️</span><span>Mine</span></button>
+    <button class="nav-btn" data-tab="tasks"><span style="font-size:18px">⚡</span><span>Tasks</span></button>
+    <button class="nav-btn" data-tab="miners"><span style="font-size:18px">⬡</span><span>Miners</span></button>
+    <button class="nav-btn" data-tab="friends"><span style="font-size:18px">👥</span><span>Friends</span></button>
+    <button class="nav-btn" data-tab="wallet"><span style="font-size:18px">👛</span><span>Wallet</span></button>
+  </div></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, update, get, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const COIN_LOGO = "https://i.ibb.co.com/5XQzjzwF/ret-coin-logo-256x256.png";
+const firebaseConfig = {
+  apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
+  authDomain: "ret-coin-mine.firebaseapp.com",
+  databaseURL: "https://ret-coin-mine-default-rtdb.firebaseio.com",
+  projectId: "ret-coin-mine",
+  storageBucket: "ret-coin-mine.firebasestorage.app",
+  messagingSenderId: "351392382831",
+  appId: "1:351392382831:web:a84dc48733c7d5decb76de",
+  measurementId: "G-LXM86R08EW"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+let uid=null, userData={balance:0,unclaimed:0,miningStart:Date.now(),level:1,hashRate:0.5,adsToday:0,streak:[],friends:[],totalMined:0,tonConnected:false,verified:false}, config={miningRate:0.000011,claimInterval:75600,usdRate:0.042,ads:[],levelBase:25,withdrawMin:500,verifyFee:0.045,verifyBypass:5000};
+
+function calcLevel(balance){ let base=config.levelBase||25; return Math.max(1, Math.floor(balance / base) + 1); }
+function calcHash(level){ return (0.5 + level*0.03).toFixed(2); }
+function showToast(msg){ let t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2600); }
+
+async function init(){
+  const steps=["Checking wallet...","Verifying security...","Encrypting data...","Syncing nodes..."];
+  const container=document.getElementById('load-steps');
+  steps.forEach((s,i)=>{ let d=document.createElement('div');d.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-radius:12px;border:1px solid rgba(255,255,255,.03);margin-bottom:8px';d.id='step-'+i;d.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="width:20px;height:20px;border-radius:999px;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center" id="sc-'+i+'"></div><span style="font-size:13px;color:rgba(255,255,255,.6)">'+s+'</span></div>';container.appendChild(d); });
+  let pct=0; const bar=document.getElementById('load-bar'), pctEl=document.getElementById('load-pct');
+  let prog=setInterval(()=>{ pct=Math.min(100,pct+Math.random()*8+2); bar.style.width=pct+'%'; pctEl.textContent=Math.floor(pct)+'%'; let active=Math.floor(pct/25); for(let i=0;i<4;i++){ let el=document.getElementById('step-'+i); let cir=document.getElementById('sc-'+i); if(i<active){ el.style.background='rgba(255,255,255,.03)'; cir.style.background='#06FFA5'; cir.innerHTML='✓'; } else if(i===active){ el.style.background='rgba(255,255,255,.06)'; el.style.borderColor='rgba(139,92,246,.3)'; } } if(pct>=100){ clearInterval(prog); setTimeout(()=>{ document.getElementById('loading').style.display='none'; document.getElementById('app').style.display='block'; },400); } },120);
+
+  await signInAnonymously(auth);
+  onAuthStateChanged(auth, async (u)=>{
+    if(!u) return; uid=u.uid;
+    onValue(ref(db,'config'), (snap)=>{ if(snap.exists()){ config={...config,...snap.val()}; renderAds(); } });
+    const userRef=ref(db,'users/'+uid);
+    onValue(userRef, (snap)=>{
+      if(snap.exists()){ userData={...userData,...snap.val()}; } else { set(userRef,{...userData,createdAt:Date.now(),username:'Ret Mine',handle:'ret_mine'}); }
+      userData.level=calcLevel(userData.balance);
+      userData.hashRate=calcHash(userData.level);
+      updateUI();
+    });
+  });
+}
+
+function updateUI(){
+  document.getElementById('topBalance').textContent=userData.balance.toFixed(3);
+  document.getElementById('lvlBadge').textContent='LVL '+userData.level;
+  document.getElementById('unclaimed').textContent=(userData.unclaimed||0).toFixed(5);
+  document.getElementById('hashRate').textContent=userData.hashRate+' TH/s';
+  document.getElementById('hashBottom').textContent=userData.hashRate;
+  document.getElementById('totalMined').textContent=userData.totalMined.toFixed(2)+' RET';
+  document.getElementById('minerLvl').textContent=userData.level;
+  document.getElementById('minerTh').textContent=userData.hashRate+' TH/s';
+  document.getElementById('walletBal').textContent=userData.balance.toFixed(5);
+  document.getElementById('walletUsd').textContent=(userData.balance*(config.usdRate||0.042)).toFixed(2);
+  document.getElementById('walletLvl').textContent=userData.level;
+  document.getElementById('usdVal').textContent=(userData.unclaimed* (config.usdRate||0.042)).toFixed(2);
+  document.getElementById('adsToday').textContent=userData.adsToday||0;
+  document.getElementById('lvlFrom').textContent=userData.level;
+  document.getElementById('lvlTo').textContent=userData.level+1;
+  let base=config.levelBase||25; let progress=userData.balance % base; document.getElementById('lvlProgress').style.width=(progress/base*100)+'%';
+  document.getElementById('lvlNeed').textContent=progress.toFixed(2)+' / '+base+' RET';
+  document.getElementById('lvlRemain').textContent=(base-progress).toFixed(2)+' RET needed';
+  document.getElementById('bypassInfo').textContent=userData.balance>=config.verifyBypass ? 'Bypass unlocked' : Math.max(0,config.verifyBypass-userData.balance).toFixed(0)+' RET to bypass';
+  document.getElementById('tonStatus').textContent=userData.tonConnected?'UQ...9f2A connected':'Not connected';
+  document.getElementById('tonBtn').textContent=userData.tonConnected?'Connected':'Connect';
+  let claimInt=config.claimInterval||75600; let elapsed=Math.floor((Date.now()-userData.miningStart)/1000); let remain=Math.max(0,claimInt-elapsed); let pct=1-remain/claimInt; document.getElementById('mineProgress').style.strokeDasharray=(pct*615)+' 615';
+  renderMiners(); renderStreak(); renderSquad(); renderPayouts();
+}
+
+function renderAds(){
+  const list=document.getElementById('adsList'); list.innerHTML='';
+  let ads=config.ads||[{id:1,title:'Watch Ad',reward:15,desc:'30s • Monetag Rewarded',zoneId:'1234567'},{id:2,title:'Watch Video Ad',reward:20,desc:'60s • Premium partners',zoneId:''},{id:3,title:'Complete Offer Wall',reward:45,desc:'Install & earn',zoneId:''}];
+  ads.forEach(a=>{
+    let d=document.createElement('div'); d.className='card'; d.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#151729';
+    d.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,255,165,.15));border:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center">▶️</div><div><div style="font-size:14px;font-weight:600;display:flex;gap:8px">'+a.title+' <span style="font-size:11px;padding:2px 6px;border-radius:6px;background:rgba(6,255,165,.15);color:#06FFA5;border:1px solid rgba(6,255,165,.2)">+'+a.reward+' RET</span></div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)">'+a.desc+' • Zone: '+(a.zoneId||'default')+'</div></div></div><button style="height:36px;padding:0 16px;border-radius:999px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer;font-size:12px">Watch</button>';
+    d.querySelector('button').onclick=()=>watchAd(a);
+    list.appendChild(d);
+  });
+}
+
+async function watchAd(ad){
+  showToast('Loading Monetag Ad... Zone: '+(ad.zoneId||'default'));
+  // DEV NOTE: integrate Monetag SDK: window.show_XXXX(ad.zoneId) then verify on server
+  setTimeout(async ()=>{
+    let newBal=userData.balance+ad.reward; let newLevel=calcLevel(newBal);
+    await update(ref(db,'users/'+uid),{balance:newBal,totalMined:(userData.totalMined||0)+ad.reward,adsToday:(userData.adsToday||0)+1,level:newLevel,hashRate:calcHash(newLevel)});
+    showToast('+'+ad.reward+' RET added • Level '+newLevel);
+  },1800);
+}
+
+function renderMiners(){
+  const list=document.getElementById('minersList'); if(!list) return; list.innerHTML='';
+  let maxShow=Math.max(30, userData.level+20);
+  for(let i=1;i<=maxShow;i++){
+    let need=i*(config.levelBase||25); let unlocked=userData.balance>=need; let current=userData.level===i;
+    let d=document.createElement('div'); d.className='card'; d.style.cssText='display:flex;justify-content:space-between;align-items:center;'+(current?'background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,255,165,.1));border:1px solid rgba(139,92,246,.4);box-shadow:0 0 20px rgba(139,92,246,.15)':'background:#151729');
+    d.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:'+(current?'#8B5CF6':unlocked?'rgba(255,255,255,.1)':'rgba(0,0,0,.2)')+'">⬡</div><div><div style="font-size:14px;font-weight:800;display:flex;gap:8px">Miner Lvl '+i+' '+(current?'<span style="font-size:10px;padding:2px 6px;border-radius:999px;background:#06FFA5;color:#000">CURRENT</span>':'')+'</div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)">'+(0.5+i*0.03).toFixed(2)+' TH/s • '+need+' RET to unlock</div></div></div><div>'+(unlocked?'<div style="width:24px;height:24px;border-radius:999px;background:#06FFA5;display:flex;align-items:center;justify-content:center;color:#000">✓</div>':'🔒')+'</div>';
+    list.appendChild(d);
+  }
+}
+
+function renderStreak(){
+  const grid=document.getElementById('streakGrid'); if(!grid) return; grid.innerHTML='';
+  for(let i=1;i<=7;i++){ let claimed=(userData.streak||[]).includes(i); let next=i===(userData.streak?.length||0)+1;
+    let b=document.createElement('button'); b.style.cssText='border-radius:14px;border:1px solid '+(claimed?'rgba(6,255,165,.3)':next?'rgba(139,92,246,.4)':'rgba(255,255,255,.05)')+';background:'+(claimed?'rgba(6,255,165,.15)':next?'rgba(139,92,246,.15)':'#151729')+';padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer';
+    b.innerHTML='<span class="font-mono" style="font-size:10px;color:rgba(255,255,255,.4)">D'+i+'</span><img src="'+COIN_LOGO+'" style="width:18px;height:18px;object-fit:contain"/><span style="font-size:10px;font-weight:800">'+(i*3+5)+'</span>'+(claimed?'<span style="font-size:10px;color:#06FFA5">✓</span>':'');
+    b.onclick=()=>claimStreak(i);
+    grid.appendChild(b);
+  }
+}
+
+async function claimStreak(day){
+  if((userData.streak||[]).includes(day)) return;
+  let reward=day*3+5; let newBal=userData.balance+reward; let newLevel=calcLevel(newBal);
+  let newStreak=[...(userData.streak||[]),day];
+  await update(ref(db,'users/'+uid),{balance:newBal,level:newLevel,hashRate:calcHash(newLevel),streak:newStreak,totalMined:(userData.totalMined||0)+reward});
+  showToast('Day '+day+' claimed +'+reward+' RET');
+}
+
+function renderSquad(){
+  let list=document.getElementById('squadList'); if(!list) return; list.innerHTML='';
+  let friends=userData.friends||[];
+  document.getElementById('squadCount').textContent=friends.length;
+  if(friends.length===0){ list.innerHTML='<div class="font-mono" style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:12px">No friends yet. Invite to earn! All data from Firebase, no demo.</div>'; return; }
+  friends.forEach(f=>{
+    let d=document.createElement('div'); d.className='card'; d.style.display='flex'; d.style.justifyContent='space-between'; d.style.alignItems='center';
+    d.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;border-radius:999px;background:radial-gradient(100% 100% at 30% 20%, #8B5CF6 0%, #1C1E32 85%);display:flex;align-items:center;justify-content:center;font-weight:800">'+(f.name?.slice(0,2).toUpperCase()||'FR')+'</div><div><div style="font-size:13px;font-weight:600">'+f.name+'</div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)">@'+f.handle+' • Lvl '+(f.level||1)+'</div></div></div><div style="text-align:right"><div style="font-size:13px;font-weight:800;display:flex;gap:4px;align-items:center;justify-content:flex-end"><img src="'+COIN_LOGO+'" style="width:14px;height:14px"/> '+(f.contributed||0)+'</div></div>';
+    list.appendChild(d);
+  });
+}
+
+function renderPayouts(){
+  let box=document.getElementById('livePayouts'); if(!box) return;
+  box.innerHTML=[{user:'@crypto_whale',amount:'1,240.50'},{user:'@ret_holder',amount:'540.00'},{user:'@mine_master',amount:'892.10'},{user:'@luna_mine',amount:'210.30'}].map(p=>'<div style="display:flex;justify-content:space-between;font-size:12px" class="font-mono"><span style="color:rgba(255,255,255,.5)">'+p.user+'</span><span style="color:#06FFA5;display:flex;gap:4px;align-items:center"><img src="'+COIN_LOGO+'" style="width:12px;height:12px"/> +'+p.amount+' RET</span></div>').join('');
+}
+
+function switchTab(tab){
+  document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
+  document.getElementById('tab-'+tab).style.display='block';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+}
+window.switchTab=switchTab;
+document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+
+document.getElementById('mainCoin').onclick=()=>{ showToast('Mining boost active x1.2 for 10s'); };
+document.getElementById('claimBtn').onclick=async ()=>{
+  let claimInt=config.claimInterval||75600; let elapsed=Math.floor((Date.now()-userData.miningStart)/1000); if(elapsed<claimInt && userData.unclaimed<10){ showToast('Mining in progress, come back later'); return; }
+  let amount=userData.unclaimed||0; if(amount<=0){ showToast('Nothing to claim'); return; }
+  let newBal=userData.balance+amount; let newLevel=calcLevel(newBal);
+  await update(ref(db,'users/'+uid),{balance:newBal,unclaimed:0.00001,miningStart:Date.now(),level:newLevel,hashRate:calcHash(newLevel),totalMined:(userData.totalMined||0)+amount});
+  showToast('Claimed '+amount.toFixed(5)+' RET');
+};
+
+window.copyRef=()=>{ navigator.clipboard.writeText(document.getElementById('refLink').textContent); showToast('Invite link copied'); };
+window.shareRef=()=>{ showToast('Share sheet opened'); };
+window.toggleTon=async ()=>{ await update(ref(db,'users/'+uid),{tonConnected:!userData.tonConnected}); showToast(userData.tonConnected?'Wallet disconnected':'TON Wallet connected'); };
+window.verifyNow=()=>{ showToast('Verify: Send 0.045 GRAM to UQAb...9f2A - TON Connect'); };
+window.openWithdraw=()=>{ if(userData.balance < (config.withdrawMin||500)){ showToast('Min withdraw '+(config.withdrawMin||500)+' RET'); return; } let amount=prompt('Withdraw amount (min '+(config.withdrawMin||500)+' RET):', config.withdrawMin); if(!amount) return; amount=parseFloat(amount); if(isNaN(amount)||amount>userData.balance){ showToast('Invalid amount'); return; } let newBal=userData.balance-amount; let newLevel=calcLevel(newBal); update(ref(db,'users/'+uid),{balance:newBal,level:newLevel,hashRate:calcHash(newLevel)}); push(ref(db,'withdrawals'),{uid,amount,status:'pending',createdAt:Date.now()}); showToast('Withdraw '+amount+' RET requested • New Level '+newLevel+' (level decreased because balance dropped)'); };
+window.showToast=showToast;
+
+setInterval(()=>{ if(!uid) return; let inc=(parseFloat(userData.hashRate)||0.5)* (config.miningRate||0.000011); let newUnclaimed=(userData.unclaimed||0)+inc; update(ref(db,'users/'+uid),{unclaimed:newUnclaimed}); },1000);
+setInterval(()=>{ if(!uid) return; let claimInt=config.claimInterval||75600; let elapsed=Math.floor((Date.now()-userData.miningStart)/1000); let remain=Math.max(0,claimInt-elapsed); let h=Math.floor(remain/3600), m=Math.floor(remain%3600/60), s=remain%60; let str=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); let t1=document.getElementById('timer'); let t2=document.getElementById('timerBtn'); if(t1) t1.textContent=str; if(t2) t2.textContent=str; },1000);
+
+init();
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+    </html>
