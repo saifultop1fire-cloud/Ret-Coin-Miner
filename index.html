@@ -71,7 +71,7 @@
   .unclaimed-sub { color: var(--text-sub); font-size: 13px; margin-bottom: 16px; }
   
   .btn-primary { width: 100%; min-height: 54px; padding: 0 16px; border-radius: 16px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; line-height: 1.2; text-align: center; }
-  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; background: #D1D1D6; }
   .btn-primary:not(:disabled) { box-shadow: 0 6px 18px rgba(69, 166, 245, 0.35); }
   
   .stats-list { margin-top: 20px; width: 100%; }
@@ -267,7 +267,8 @@
     <div class="unclaimed-amount font-mono"><span id="unclaimedAmount">0.00000</span> <span>RET</span></div>
     <div class="unclaimed-sub">≈ $<span id="unclaimedUsd">0.0000</span> • <span id="mineHash">0.00</span> TH/s</div>
 
-    <button id="claimBtn" class="btn-primary" onclick="claimMining()" disabled>0.10 RET needed to claim</button>
+    <!-- Mining never stops, button stays active after 0.1 -->
+    <button id="claimBtn" class="btn-primary" onclick="claimMining()" disabled>Mining in progress...</button>
   </div>
 
   <div class="section-title">MINER</div>
@@ -507,7 +508,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// --- 1. TELEGRAM CHECK ---
+// --- TELEGRAM CHECK ---
 const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
 if (!isTelegram && !isLocal) {
@@ -516,7 +517,7 @@ if (!isTelegram && !isLocal) {
   throw new Error("Unauthorized Access. Please open in Telegram.");
 }
 
-// --- 2. FIREBASE ---
+// --- FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
   authDomain: "ret-coin-mine.firebaseapp.com",
@@ -530,7 +531,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// --- 3. STATE ---
+// --- STATE ---
 let uid = null;
 let user = {};
 let config = {
@@ -548,7 +549,7 @@ let referralParam = null;
 const claimingTasks = new Set();
 const adZoneLoading = {};
 
-// --- 4. HELPERS ---
+// --- HELPERS ---
 const $ = id => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = (n, d = 2) => (Number(n) || 0).toFixed(d);
@@ -564,7 +565,7 @@ const calcLevel = (bal) => Math.max(1, Math.floor((Number(bal) || 0) / (config.l
 const calcSpeed = (lvl) => (0.5 + lvl * 0.03).toFixed(2);
 const calcDaily = (spd) => (parseFloat(spd) * (config.miningRate || 0.000011) * 86400).toFixed(2);
 
-// --- 5. TELEGRAM ---
+// --- TELEGRAM INIT ---
 function getTelegramUser() {
   if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
     const u = Telegram.WebApp.initDataUnsafe.user;
@@ -579,7 +580,7 @@ if (window.Telegram?.WebApp) {
   if (startParam && startParam.startsWith('ref_')) referralParam = startParam.replace('ref_', '');
 }
 
-// --- 6. TON CONNECT ---
+// --- TON CONNECT ---
 function initTonConnect() {
   const manifestUrl = 'https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json';
   if (typeof TON_CONNECT_UI === 'undefined') return;
@@ -589,7 +590,6 @@ function initTonConnect() {
     if (wallet && wallet.account?.address) {
       await update(ref(db, 'users/' + uid), { tonConnected: true, tonAddress: wallet.account.address });
       showToast('TON Wallet Connected');
-      // Auto-prompt verify if not verified
       if (!user.isVerified) setTimeout(() => openVerify(), 600);
     } else {
       await update(ref(db, 'users/' + uid), { tonConnected: false, tonAddress: '' });
@@ -600,7 +600,7 @@ function initTonConnect() {
 window.openTonConnect = async () => { if (tonConnectUI) await tonConnectUI.openModal(); };
 window.disconnectTon = async () => { if (tonConnectUI) { await tonConnectUI.disconnect(); showToast('TON Wallet Disconnected'); } };
 
-// --- 7. OFFLINE MINING ENGINE ---
+// --- OFFLINE MINING ENGINE ---
 function calcUnclaimed() {
   const base = Number(user.unclaimed) || 0;
   const lastSync = user.lastSyncTime || Date.now();
@@ -610,9 +610,8 @@ function calcUnclaimed() {
   return base + elapsed * spd * (config.miningRate || 0.000011);
 }
 
-// --- 8. MAIN INIT ---
+// --- INIT ---
 async function init() {
-  // Config realtime
   onValue(ref(db, 'config'), (snap) => {
     if (snap.exists()) {
       config = { ...config, ...snap.val() };
@@ -667,7 +666,7 @@ async function init() {
   });
 }
 
-// --- 9. GLOBAL UI ---
+// --- GLOBAL UI ---
 function updateGlobalUI() {
   const tg = getTelegramUser();
   $('userAvatar').src = user.photo || tg.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
@@ -687,7 +686,7 @@ window.switchTab = (tabId) => {
   if (tabId === 'mine') renderMineTab();
 };
 
-// --- 10. MINE TAB ---
+// --- MINE TAB (CONTINUOUS MINING) ---
 function renderMineTab() {
   const lvl = calcLevel(user.balance || 0);
   const spd = calcSpeed(lvl);
@@ -707,24 +706,27 @@ function updateMineProgress() {
 
   const minClaim = Number(config.minClaimAmount) || 0.10;
   const btn = $('claimBtn');
+  
+  // Continuous Mining: If amount >= min, button is active and shows total amount.
+  // It never stops growing. The user can claim whenever they want.
   if (amt >= minClaim) {
     btn.textContent = `Claim ${amt.toFixed(4)} RET`;
     btn.disabled = false;
   } else {
     const need = (minClaim - amt).toFixed(4);
-    btn.textContent = `${need} more RET needed to claim`;
+    btn.textContent = `Mining... (${need} more to claim)`;
     btn.disabled = true;
   }
 }
 
-// Tick: update display from live calc
+// Update every second
 setInterval(() => {
   if (!uid) return;
   localUnclaimed = calcUnclaimed();
   if ($('tab-mine').classList.contains('active')) updateMineProgress();
 }, 1000);
 
-// Sync every 10s (also runs in background via visibility wakeup)
+// Sync to DB every 10s
 setInterval(async () => {
   if (!uid || !user.lastSyncTime) return;
   const amt = calcUnclaimed();
@@ -737,6 +739,7 @@ window.claimMining = async () => {
   const amt = calcUnclaimed();
   const minClaim = Number(config.minClaimAmount) || 0.10;
   if (amt < minClaim) return showToast(`Minimum ${minClaim} RET needed`, true);
+  
   const newBal = (user.balance || 0) + amt;
   try {
     await update(ref(db, 'users/' + uid), {
@@ -744,20 +747,24 @@ window.claimMining = async () => {
       totalMined: (user.totalMined || 0) + amt,
       level: calcLevel(newBal)
     });
-    // Optimistic local update
+    
+    // Update local state immediately for smooth UI
     user.balance = newBal;
     user.unclaimed = 0;
     user.lastSyncTime = Date.now();
     user.totalMined = (user.totalMined || 0) + amt;
     localUnclaimed = 0;
+    
     showToast(`Claimed ${amt.toFixed(4)} RET!`);
     push(ref(db, 'history/' + uid), { type: 'Mining Claim', amount: amt, date: Date.now() });
+    updateGlobalUI();
+    renderMineTab();
   } catch (e) {
     showToast('Claim failed: ' + e.message, true);
   }
 };
 
-// --- 11. TASKS ---
+// --- TASKS ---
 async function recordTaskClaim(taskId, limit, cooldownHours) {
   const current = (user.taskClaims && user.taskClaims[taskId]) || { count: 0, lastTime: 0 };
   const now = Date.now();
@@ -774,7 +781,6 @@ async function recordTaskClaim(taskId, limit, cooldownHours) {
 }
 
 function renderTasks() {
-  // Daily check-in grid
   const streak = user.streak || 0;
   const lastCheck = user.lastCheckIn || 0;
   const now = Date.now();
@@ -799,7 +805,6 @@ function renderTasks() {
     btn.textContent = `Next in ${Math.floor(rem / 3600000)}h ${Math.floor((rem % 3600000) / 60000)}m`;
   }
 
-  // Task list
   const tasks = config.tasks || [];
   if (tasks.length === 0) {
     $('tasksList').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">No tasks available right now.</div>';
@@ -864,6 +869,7 @@ window.claimDailyCheckin = async () => {
   user.lastCheckIn = Date.now();
   showToast(`Claimed +${reward} RET!`);
   push(ref(db, 'history/' + uid), { type: 'Daily Check-in', amount: reward, date: Date.now() });
+  updateGlobalUI();
   renderTasks();
 };
 
@@ -886,6 +892,7 @@ window.doLegalTask = async (taskId, link, reward) => {
       await recordTaskClaim(taskId, task.limit || 1, task.cooldown || 24);
       showToast(`Task completed! +${reward} RET`);
       push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
+      updateGlobalUI();
       renderTasks();
       claimingTasks.delete(taskId);
     }, 3000);
@@ -895,13 +902,12 @@ window.doLegalTask = async (taskId, link, reward) => {
   }
 };
 
-// --- 12. MONETAG SDK ---
+// --- MONETAG SDK ---
 function loadMonetagZone(zoneId) {
   return new Promise((resolve, reject) => {
     const fnName = 'show_' + zoneId;
     if (typeof window[fnName] === 'function') return resolve();
     if (adZoneLoading[zoneId]) {
-      // Already loading — poll
       const iv = setInterval(() => {
         if (typeof window[fnName] === 'function') { clearInterval(iv); resolve(); }
       }, 200);
@@ -953,7 +959,6 @@ window.watchAd = async (taskId, zoneId, reward) => {
   
   try {
     await loadMonetagZone(zoneId);
-    
     titleEl.textContent = 'Opening Ad';
     descEl.textContent = 'Complete the ad to earn your reward.';
     
@@ -967,12 +972,10 @@ window.watchAd = async (taskId, zoneId, reward) => {
       throw new Error('Ad failed to start: ' + err.message);
     }
     
-    // Await if promise
     if (result && typeof result.then === 'function') {
       await result;
     }
     
-    // Success
     modal.classList.remove('show');
     
     const task = (config.tasks || []).find(t => t.id === taskId);
@@ -991,6 +994,7 @@ window.watchAd = async (taskId, zoneId, reward) => {
     await recordTaskClaim(taskId, limit, cooldown);
     showToast(`+${reward} RET earned!`);
     push(ref(db, 'history/' + uid), { type: 'Ad Reward', amount: reward, date: Date.now() });
+    updateGlobalUI();
     renderTasks();
   } catch (e) {
     console.error('Ad error:', e);
@@ -1004,7 +1008,7 @@ window.watchAd = async (taskId, zoneId, reward) => {
   }
 };
 
-// --- 13. MINERS TAB ---
+// --- MINERS TAB ---
 function renderMinersTab() {
   const bal = user.balance || 0;
   const base = config.levelBase || 25;
@@ -1045,7 +1049,7 @@ function renderMinersTab() {
   $('levelsList').innerHTML = html;
 }
 
-// --- 14. FRIENDS TAB ---
+// --- FRIENDS TAB ---
 function renderFriendsTab() {
   $('profileName').textContent = user.username || 'User';
   $('profileHandle').textContent = '@' + (user.handle || 'user');
@@ -1093,7 +1097,7 @@ window.shareRefLink = () => {
   else if (navigator.share) navigator.share({ title: 'RET Miner', url: link });
 };
 
-// --- 15. WALLET TAB ---
+// --- WALLET TAB ---
 function renderWalletTab() {
   $('walletBalance').textContent = fmt(user.balance, 2);
   $('walletUsd').textContent = ((user.balance || 0) * (config.usdRate || 0.042)).toFixed(2);
@@ -1124,7 +1128,6 @@ function renderWalletTab() {
     `;
   }
   
-  // Verify status card
   const vc = $('verifyStatusCard');
   if (user.isVerified) {
     vc.className = 'card';
@@ -1172,7 +1175,7 @@ function renderHistory() {
   });
 }
 
-// --- 16. TON PAYMENTS ---
+// --- 16. TON PAYMENTS (FIXED ERROR) ---
 async function sendTonPayment(amountTon, comment) {
   if (!tonConnectUI || !user.tonConnected) {
     showToast('Connect TON wallet first', true);
@@ -1180,7 +1183,7 @@ async function sendTonPayment(amountTon, comment) {
     return false;
   }
   if (!config.adminWallet || config.adminWallet === 'UQ...') {
-    showToast('Admin wallet not configured', true);
+    showToast('Admin wallet not configured properly', true);
     return false;
   }
   try {
@@ -1188,15 +1191,21 @@ async function sendTonPayment(amountTon, comment) {
       validUntil: Math.floor(Date.now() / 1000) + 600,
       messages: [{
         address: config.adminWallet,
-        amount: Math.floor(amountTon * 1e9).toString(),
-        payload: new TextEncoder().encode(comment).toString('base64')
+        amount: Math.floor(amountTon * 1e9).toString()
+        // Note: Payload is removed to prevent "Unexpected error" from wallets
       }]
     };
-    await tonConnectUI.sendTransaction(tx);
+    
+    // Added modals to see exact error/success in the wallet UI
+    await tonConnectUI.sendTransaction(tx, {
+      modals: ['before', 'success', 'error']
+    });
     return true;
   } catch (e) {
     console.error('Payment failed:', e);
-    showToast('Payment cancelled', true);
+    // Show exact error so user knows what's wrong (e.g. insufficient funds)
+    alert('Payment Error: ' + (e.message || 'User rejected the transaction or wallet error.'));
+    showToast('Payment cancelled or failed', true);
     return false;
   }
 }
@@ -1249,6 +1258,7 @@ window.confirmBuy = async () => {
     await push(ref(db, 'transactions'), { user: user.username, type: 'Deposit', amount: amt, date: Date.now(), comment: 'Buy RET' });
     await push(ref(db, 'history/' + uid), { type: 'Bought RET', amount: amt, date: Date.now() });
     showToast(`Bought ${amt} RET!`);
+    updateGlobalUI();
     renderWalletTab();
   }
 };
@@ -1278,6 +1288,7 @@ window.confirmWithdraw = async () => {
     await push(ref(db, 'history/' + uid), { type: 'Withdraw Request', amount: -amt, date: Date.now() });
     closeWithdraw();
     showToast('Withdrawal requested!');
+    updateGlobalUI();
     renderWalletTab();
   } catch (e) {
     showToast('Failed: ' + e.message, true);
