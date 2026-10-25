@@ -1,290 +1,311 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>RET Coin Mining</title>
-<!-- Telegram WebApp SDK -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- TON Connect UI -->
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-<!-- Font Awesome -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-<style>
-  :root {
-    --bg: #0b0f19; --surface: #151b2b; --primary: #8b5cf6; 
-    --success: #10b981; --danger: #ef4444; --text: #f8fafc; --text-muted: #94a3b8;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
-  body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
-  
-  .app-container { width: 100%; max-width: 400px; }
-  
-  /* Header */
-  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .logo-box { display: flex; align-items: center; gap: 10px; }
-  .logo-box img { width: 40px; height: 40px; border-radius: 50%; }
-  .logo-box h2 { font-size: 1.2rem; color: var(--primary); }
-  .balance-box { background: var(--surface); padding: 8px 15px; border-radius: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); }
-  
-  /* Mining Card */
-  .mining-card { background: var(--surface); border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden; margin-bottom: 20px; }
-  .mining-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 60%); z-index: 0; }
-  
-  .coin-img { width: 120px; height: 120px; margin: 0 auto 15px; position: relative; z-index: 1; animation: float 3s ease-in-out infinite; }
-  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-  
-  .level-badge { display: inline-block; background: rgba(139,92,246,0.2); color: var(--primary); padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; margin-bottom: 10px; z-index: 1; position: relative; }
-  .mining-rate { font-size: 0.85rem; color: var(--success); margin-bottom: 15px; z-index: 1; position: relative; }
-  .progress-bar-container { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-bottom: 20px; overflow: hidden; position: relative; z-index: 1; }
-  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); width: 0%; transition: width 0.3s ease; }
-  .progress-text { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 20px; z-index: 1; position: relative; }
-  
-  .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px; z-index: 1; position: relative; }
-  .btn-claim { background: var(--primary); color: white; }
-  .btn-claim:active { transform: scale(0.95); }
-  
-  /* Wallet Section */
-  .wallet-card { background: var(--surface); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-  .wallet-title { font-size: 1rem; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-  .wallet-address { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; font-size: 0.8rem; word-break: break-all; margin-bottom: 15px; color: var(--text-muted); display: none; }
-  .btn-withdraw { background: var(--success); color: white; margin-top: 15px; }
-  
-  .toast { position: fixed; top: -50px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; transition: 0.3s; z-index: 1000; }
-  .toast.show { top: 20px; }
-  .toast.error { background: var(--danger); }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>RET Coin Mining</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+    *{ font-family: 'Outfit', sans-serif; }
+    .font-mono{ font-family: 'JetBrains Mono', monospace !important; }
+    body { background-color: #0A0B14; color: white; margin: 0; overflow-x: hidden; }
+    @keyframes retRotate { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+    @keyframes retFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+    .scrollbar-thin::-webkit-scrollbar{width:4px}
+    .scrollbar-thin::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:999px}
+  </style>
 </head>
 <body>
+  <div id="root"></div>
 
-<div class="app-container">
-  
-  <!-- Header -->
-  <div class="header">
-    <div class="logo-box">
-      <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" alt="Logo">
-      <h2>RET Coin</h2>
-    </div>
-    <div class="balance-box" id="headerBalance">0.00 RET</div>
-  </div>
-
-  <!-- Mining Card -->
-  <div class="mining-card">
-    <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="coin-img" alt="Coin">
-    <div class="level-badge">লেভেল: <span id="levelText">1</span></div>
-    <div class="mining-rate"><i class="fas fa-bolt"></i> মাইনিং রেট: <span id="rateText">0.01</span> RET/ঘণ্টা</div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { Pickaxe, Zap, Hexagon, Users, Wallet, Check, ShieldCheck, Play, ChevronRight, Clock } = lucideReact;
     
-    <div class="progress-bar-container">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div class="progress-text">পরবর্তী লেভেলে যেতে আরও <span id="neededText">10.00</span> RET প্রয়োজন</div>
-    
-    <button class="btn btn-claim" id="claimBtn" onclick="claimCoins()">
-      <i class="fas fa-gift"></i> ক্লেইম করুন
-    </button>
-  </div>
+    // নতুন লোগো লিংক
+    const LOGO_URL = "https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png";
+    const MANIFEST_URL = "https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json";
 
-  <!-- Wallet Section -->
-  <div class="wallet-card">
-    <div class="wallet-title"><i class="fas fa-wallet"></i> TON ওয়ালেট</div>
-    <div class="wallet-address" id="walletDisplay"></div>
-    <div id="ton-connect-btn"></div>
-    <button class="btn btn-withdraw" id="withdrawBtn" onclick="requestWithdraw()">উইথড্র রিকোয়েস্ট</button>
-  </div>
-
-</div>
-
-<div class="toast" id="toast">Message</div>
-
-<script>
-  // ==========================================
-  // ১. কনফিগারেশন
-  // ==========================================
-  const firebaseConfig = {
-    apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
-    authDomain: "ret-coin-mine.firebaseapp.com",
-    databaseURL: "https://ret-coin-mine-default-rtdb.firebaseio.com",
-    projectId: "ret-coin-mine",
-    storageBucket: "ret-coin-mine.firebasestorage.app",
-    messagingSenderId: "417445689965",
-    appId: "1:417445689965:web:023edebe16193cc1e11d64"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  // ⚠️ এখানে আপনার GitHub Pages এর tonconnect-manifest.json লিংকটি বসান
-  const MANIFEST_URL = "https://YOUR_USERNAME.github.io/YOUR_REPO_NAME/tonconnect-manifest.json";
-
-  // ==========================================
-  // ২. গ্লোবাল ভ্যারিয়েবল
-  // ==========================================
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  
-  let userId = null;
-  let userName = "Unknown";
-  let currentBalance = 0;
-  let walletAddress = null;
-  let tonConnectUI = null;
-  
-  // লেভেল এবং রেট ক্যালকুলেশন লজিক
-  function getLevelData(balance) {
-    if (balance < 10) return { level: 1, nextTarget: 10, rate: 0.01 };
-    if (balance < 50) return { level: 2, nextTarget: 50, rate: 0.02 };
-    if (balance < 200) return { level: 3, nextTarget: 200, rate: 0.05 };
-    if (balance < 500) return { level: 4, nextTarget: 500, rate: 0.1 };
-    
-    const extraLevel = Math.floor((balance - 500) / 500);
-    return { 
-      level: 5 + extraLevel, 
-      nextTarget: 500 + ((extraLevel + 1) * 500), 
-      rate: 0.1 + (extraLevel * 0.1) 
+    // ফায়ারবেস কনফিগ
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
+      authDomain: "ret-coin-mine.firebaseapp.com",
+      databaseURL: "https://ret-coin-mine-default-rtdb.firebaseio.com",
+      projectId: "ret-coin-mine",
+      storageBucket: "ret-coin-mine.firebasestorage.app",
+      messagingSenderId: "417445689965",
+      appId: "1:417445689965:web:023edebe16193cc1e11d64"
     };
-  }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  // ==========================================
-  // ৩. ইনিশিয়ালাইজেশন
-  // ==========================================
-  window.onload = async function() {
-    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-      userId = tg.initDataUnsafe.user.id.toString();
-      userName = tg.initDataUnsafe.user.first_name;
-      initFirebaseUser();
-    } else {
-      showToast("Please open from Telegram", true);
+    // লেভেল ক্যালকুলেশন ফর্মুলা (আপনার লজিক)
+    const getLevelData = (balance) => {
+      if (balance < 10) return { level: 1, nextTarget: 10, rate: 0.01 };
+      if (balance < 50) return { level: 2, nextTarget: 50, rate: 0.02 };
+      if (balance < 200) return { level: 3, nextTarget: 200, rate: 0.05 };
+      if (balance < 500) return { level: 4, nextTarget: 500, rate: 0.1 };
+      const extraLevel = Math.floor((balance - 500) / 500);
+      return { level: 5 + extraLevel, nextTarget: 500 + ((extraLevel + 1) * 500), rate: 0.1 + (extraLevel * 0.1) };
+    };
+
+    function App() {
+      const tg = window.Telegram?.WebApp;
+      const [activeTab, setActiveTab] = useState("mine");
+      const [balance, setBalance] = useState(0);
+      const [walletAddress, setWalletAddress] = useState(null);
+      const [userId, setUserId] = useState(null);
+      const [toast, setToast] = useState(null);
+
+      useEffect(() => {
+        if (tg) tg.expand();
+        
+        // Telegram User Init & Firebase Load
+        if (tg?.initDataUnsafe?.user) {
+          const uid = tg.initDataUnsafe.user.id.toString();
+          setUserId(uid);
+          const userRef = db.ref('users/' + uid);
+          
+          userRef.on('value', (snapshot) => {
+            if (!snapshot.exists()) {
+              userRef.set({ name: tg.initDataUnsafe.user.first_name, balance: 0, banned: false });
+            } else {
+              const data = snapshot.val();
+              if (data.banned) { document.body.innerHTML = "<h1 style='color:red;text-align:center;margin-top:50px'>BANNED</h1>"; return; }
+              setBalance(data.balance || 0);
+              if(data.wallet) setWalletAddress(data.wallet);
+            }
+          });
+        }
+
+        // TON Connect Init
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+          manifestUrl: MANIFEST_URL,
+          buttonRootId: 'ton-connect-btn'
+        });
+
+        tonConnectUI.onStatusChange((wallet) => {
+          if (wallet && userId) {
+            setWalletAddress(wallet.account.address);
+            db.ref('users/' + userId).update({ wallet: wallet.account.address });
+          }
+        });
+      }, [userId]);
+
+      const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
+
+      const handleClaim = () => {
+        if (!userId) return;
+        const levelData = getLevelData(balance);
+        const newBalance = balance + levelData.rate;
+        
+        db.ref('users/' + userId).update({ balance: newBalance }).then(() => {
+          showToast(`সফলভাবে ${levelData.rate} RET ক্লেইম হয়েছে!`);
+          if (tg) tg.sendData(JSON.stringify({ action: "claim", amount: levelData.rate }));
+        });
+      };
+
+      const handleWithdraw = () => {
+        if (!walletAddress) return showToast("আগে ওয়ালেট কানেক্ট করুন!");
+        if (balance < 100) return showToast("সর্বনিম্ন ১০০ RET প্রয়োজন!");
+        
+        const amount = prompt(`আপনার ব্যালেন্স: ${balance.toFixed(2)} RET\nকত উইথড্র করতে চান?`);
+        if (!amount || isNaN(amount) || amount <= 0 || amount > balance) return showToast("সঠিক পরিমাণ দিন!");
+
+        db.ref('withdrawals').push({
+          userId, userName: tg?.initDataUnsafe?.user?.first_name || "User",
+          amount: parseFloat(amount), wallet: walletAddress, status: "pending", timestamp: Date.now()
+        }).then(() => {
+          db.ref('users/' + userId).update({ balance: balance - parseFloat(amount) });
+          showToast("উইথড্র রিকোয়েস্ট সফল!");
+          if (tg) tg.sendData(JSON.stringify({ action: "withdraw", amount: parseFloat(amount), wallet: walletAddress }));
+        });
+      };
+
+      const levelData = getLevelData(balance);
+      let prevTarget = levelData.level === 1 ? 0 : (levelData.level === 2 ? 10 : (levelData.level === 3 ? 50 : (levelData.level === 4 ? 200 : 500 + ((levelData.level - 5) * 500))));
+      const progressPercent = Math.min(100, Math.max(0, ((balance - prevTarget) / (levelData.nextTarget - prevTarget)) * 100));
+
+      return (
+        <div className="min-h-screen bg-[#0A0B14] flex justify-center">
+          <div className="w-full max-w-[430px] relative flex flex-col min-h-screen bg-[#0A0B14] overflow-x-hidden">
+            
+            {/* HEADER */}
+            <header className="sticky top-0 z-40 bg-[#0A0B14]/80 backdrop-blur-md border-b border-white/5 px-4 h-16 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-[38px] h-[38px] rounded-full p-[1.5px] bg-gradient-to-br from-[#8B5CF6] to-[#06FFA5]">
+                  <img src={LOGO_URL} alt="Logo" className="w-full h-full rounded-full object-cover bg-black" />
+                </div>
+                <div>
+                  <div className="text-[14px] font-bold flex items-center gap-1">Ret Mine <ShieldCheck size={14} className="text-[#06FFA5]"/></div>
+                  <div className="text-[10px] text-white/40 font-mono">@ret_mine</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#151729] border border-white/5">
+                <img src={LOGO_URL} className="w-4 h-4" />
+                <span className="text-[13px] font-bold">{balance.toFixed(2)} RET</span>
+              </div>
+            </header>
+
+            {/* MAIN CONTENT */}
+            <main className="flex-1 px-4 pt-4 pb-24">
+              
+              {/* MINE TAB */}
+              {activeTab === "mine" && (
+                <div className="space-y-4">
+                  <div className="relative rounded-[28px] bg-[#151729] border border-white/[0.06] p-5 overflow-hidden">
+                    <div className="absolute -top-[60px] -right-[60px] w-[200px] h-[200px] bg-[#8B5CF6]/15 blur-[40px] rounded-full pointer-events-none"></div>
+                    <div className="flex justify-between items-center mb-6">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-white/[0.06] flex items-center justify-center"><Zap size={14} className="text-white/60"/></div>
+                        <span className="text-[12px] font-mono tracking-widest text-white/40">MINING CORE</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-[#06FFA5] bg-[#06FFA5]/10 px-2.5 py-1 rounded-full border border-[#06FFA5]/20">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#06FFA5] animate-pulse"></div> ACTIVE
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <div className="relative w-[220px] h-[220px] flex items-center justify-center">
+                        <svg className="absolute inset-0 w-full h-full -rotate-90 z-0" viewBox="0 0 220 220">
+                          <circle cx="110" cy="110" r="98" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+                          <circle cx="110" cy="110" r="98" fill="none" stroke="url(#grad)" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(progressPercent/100)*615} 615`} className="transition-all duration-1000" />
+                          <defs>
+                            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#8B5CF6" /><stop offset="100%" stopColor="#06FFA5" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        <div className="absolute inset-[30px] rounded-full bg-gradient-to-br from-[#8B5CF6]/08 to-[#06FFA5]/06 blur-[0.5px] border border-white/[0.03] z-0 pointer-events-none"></div>
+                        <img src={LOGO_URL} className="relative z-10 w-[140px] h-[140px] object-contain animate-[retRotate_8s_linear_infinite] drop-shadow-[0_0_30px_rgba(139,92,246,0.6)]" />
+                      </div>
+
+                      <div className="mt-7 text-center w-full">
+                        <div className="text-[11px] tracking-[0.18em] text-white/40 font-mono mb-1">CURRENT BALANCE</div>
+                        <div className="flex items-center justify-center gap-2">
+                          <img src={LOGO_URL} className="w-7 h-7" />
+                          <span className="text-[32px] font-black tracking-tight tabular-nums">{balance.toFixed(5)}</span>
+                          <span className="text-[15px] font-bold text-white/40 mt-1">RET</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-center gap-3 text-[12px] font-mono">
+                          <span className="text-[#06FFA5] font-bold">Level {levelData.level}</span>
+                          <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                          <span className="text-white/60 flex items-center gap-1"><Zap size={12}/> {levelData.rate} RET/h</span>
+                        </div>
+                        <button onClick={handleClaim} className="mt-5 w-full h-[54px] rounded-[16px] bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] font-bold text-[15px] tracking-wide shadow-[0_8px_24px_rgba(139,92,246,0.35),inset_0_1px_0_rgba(255,255,255,0.15)] active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+                          <Play size={18} /> CLAIM RET
+                        </button>
+                        <p className="mt-2.5 text-[11px] text-white/30 font-mono">Auto-mining continues even when offline</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[20px] bg-gradient-to-br from-[#1C1E32] to-[#151729] border border-white/[0.06] p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-[#8B5CF6]/20 to-[#06FFA5]/20 border border-white/10 flex items-center justify-center"><Hexagon size={22} className="text-[#8B5CF6]"/></div>
+                      <div>
+                        <div className="text-[12px] text-white/40 font-mono">NEXT LEVEL PROGRESS</div>
+                        <div className="text-[16px] font-bold flex items-center gap-2">Level {levelData.level} <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/60">to {levelData.level + 1}</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MINERS TAB */}
+              {activeTab === "miners" && (
+                <div className="space-y-4 animate-[fadeIn_0.3s_ease]">
+                  <div className="rounded-[20px] bg-gradient-to-br from-[#1C1E32] to-[#151729] border border-white/10 p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-[13px] font-mono text-white/40">NEXT LEVEL PROGRESS</span>
+                      <span className="text-[12px] font-bold">{levelData.level} → {levelData.level + 1}</span>
+                    </div>
+                    <div className="h-2 w-full bg-black/30 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#06FFA5] rounded-full" style={{width: `${progressPercent}%`}}></div>
+                    </div>
+                    <div className="mt-2 flex justify-between text-[11px] font-mono text-white/40">
+                      <span>{balance.toFixed(2)} / {levelData.nextTarget} RET</span>
+                      <span>{(levelData.nextTarget - balance).toFixed(2)} RET needed</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* WALLET TAB */}
+              {activeTab === "wallet" && (
+                <div className="space-y-4 animate-[fadeIn_0.3s_ease]">
+                  <div className="rounded-[24px] bg-[#151729] border border-white/[0.06] p-5 relative overflow-hidden">
+                    <div className="text-[11px] tracking-widest font-mono text-white/40 mb-3">IN-APP BALANCE</div>
+                    <div className="flex items-center gap-3">
+                      <img src={LOGO_URL} className="w-11 h-11" />
+                      <div>
+                        <div className="text-[28px] font-black tabular-nums leading-none">{balance.toFixed(5)} <span className="text-[16px] text-white/40 font-bold">RET</span></div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-5">
+                      <button onClick={handleWithdraw} className="h-11 rounded-[12px] bg-white text-black font-bold text-[13px]">Withdraw</button>
+                      <button onClick={() => showToast("Swap RET to TON coming soon")} className="h-11 rounded-[12px] bg-white/10 border border-white/10 font-bold text-[13px]">Swap</button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[20px] bg-[#1C1E32] border border-white/[0.06] p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-[12px] bg-[#0098EA] flex items-center justify-center font-black text-[12px]">TON</div>
+                        <div>
+                          <div className="text-[14px] font-bold">TON Wallet</div>
+                          <div className="text-[11px] text-white/40 font-mono">{walletAddress ? walletAddress.substring(0,6) + "..." + walletAddress.slice(-4) : "Not connected"}</div>
+                        </div>
+                      </div>
+                      <div id="ton-connect-btn"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </main>
+
+            {/* BOTTOM NAVIGATION */}
+            <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-3 pb-[calc(8px+var(--safe-area-inset-bottom,0px))] pt-2 pointer-events-none">
+              <div className="pointer-events-auto mx-auto rounded-[20px] bg-[#151729]/90 backdrop-blur-[20px] border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] flex items-center justify-around p-1.5">
+                {[
+                  { id: "mine", label: "Mine", icon: Pickaxe },
+                  { id: "miners", label: "Miners", icon: Hexagon },
+                  { id: "wallet", label: "Wallet", icon: Wallet }
+                ].map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`relative flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-[14px] transition-all duration-300 ${isActive ? "bg-white text-black shadow-[0_4px_16px_rgba(255,255,255,0.15)]" : "text-white/40 hover:text-white/70"}`}>
+                      <tab.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                      <span className={`text-[10px] font-bold tracking-wide ${isActive ? "text-black" : ""}`}>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+
+            {/* TOAST */}
+            {toast && (
+              <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-[#06FFA5] text-black px-4 py-2 rounded-full text-[12px] font-bold shadow-lg z-[100] animate-[fadeIn_0.3s_ease]">
+                {toast}
+              </div>
+            )}
+          </div>
+        </div>
+      );
     }
 
-    // TON Connect Initialize
-    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: MANIFEST_URL,
-      buttonRootId: "ton-connect-btn" 
-    });
-
-    tonConnectUI.onStatusChange((wallet) => {
-      if (wallet) {
-        walletAddress = wallet.account.address;
-        const display = document.getElementById('walletDisplay');
-        display.style.display = 'block';
-        display.innerText = "Connected: " + walletAddress.substring(0, 6) + '...' + walletAddress.substring(walletAddress.length - 4);
-        db.ref('users/' + userId).update({ wallet: walletAddress });
-      }
-    });
-  };
-
-  // ==========================================
-  // ৪. ফায়ারবেস ডাটা লোড
-  // ==========================================
-  function initFirebaseUser() {
-    const userRef = db.ref('users/' + userId);
-    
-    userRef.on('value', (snapshot) => {
-      if (!snapshot.exists()) {
-        userRef.set({
-          name: userName,
-          balance: 0,
-          banned: false,
-          wallet: "",
-          lastClaim: Date.now()
-        }).then(() => updateUI(0));
-      } else {
-        const data = snapshot.val();
-        if (data.banned) {
-          document.body.innerHTML = "<h2 style='text-align:center;margin-top:50px;color:red;'>আপনি ব্যান হয়েছেন!</h2>";
-          return;
-        }
-        updateUI(data.balance || 0);
-        if(data.wallet) {
-          const display = document.getElementById('walletDisplay');
-          display.style.display = 'block';
-          display.innerText = "Connected: " + data.wallet.substring(0, 6) + '...' + data.wallet.substring(data.wallet.length - 4);
-        }
-      }
-    });
-  }
-
-  // ==========================================
-  // ৫. UI আপডেট
-  // ==========================================
-  function updateUI(balance) {
-    currentBalance = balance;
-    const levelData = getLevelData(balance);
-    
-    document.getElementById('headerBalance').innerText = balance.toFixed(3) + " RET";
-    document.getElementById('levelText').innerText = levelData.level;
-    document.getElementById('rateText').innerText = levelData.rate.toFixed(2);
-    
-    // প্রোগ্রেস বার ক্যালকুলেশন
-    let prevTarget = 0;
-    if(levelData.level === 2) prevTarget = 10;
-    else if(levelData.level === 3) prevTarget = 50;
-    else if(levelData.level === 4) prevTarget = 200;
-    else if(levelData.level > 4) prevTarget = 500 + ((levelData.level - 5) * 500);
-
-    const progress = ((balance - prevTarget) / (levelData.nextTarget - prevTarget)) * 100;
-    document.getElementById('progressBar').style.width = Math.max(0, Math.min(100, progress)) + "%";
-    document.getElementById('neededText').innerText = Math.max(0, (levelData.nextTarget - balance)).toFixed(2);
-  }
-
-  // ==========================================
-  // ৬. ক্লেইম ফাংশন
-  // ==========================================
-  function claimCoins() {
-    const levelData = getLevelData(currentBalance);
-    const reward = levelData.rate; 
-    const newBalance = currentBalance + reward;
-    
-    db.ref('users/' + userId).update({
-      balance: newBalance,
-      lastClaim: Date.now()
-    }).then(() => {
-      showToast(`সফলভাবে ${reward.toFixed(3)} RET ক্লেইম হয়েছে!`);
-      tg.sendData(JSON.stringify({ action: "claim", amount: reward }));
-    }).catch((err) => {
-      showToast("এরর: " + err.message, true);
-    });
-  }
-
-  // ==========================================
-  // ৭. উইথড্র রিকোয়েস্ট
-  // ==========================================
-  function requestWithdraw() {
-    if (!walletAddress) return showToast("আগে ওয়ালেট কানেক্ট করুন!", true);
-    if (currentBalance < 100) return showToast("সর্বনিম্ন ১০০ RET থাকতে হবে!", true);
-
-    const amount = prompt(`আপনার ব্যালেন্স: ${currentBalance.toFixed(2)} RET\nকত RET উইথড্র করতে চান?`);
-    if (!amount || isNaN(amount) || amount <= 0 || amount > currentBalance) {
-      return showToast("সঠিক পরিমাণ লিখুন!", true);
-    }
-
-    db.ref('withdrawals').push({
-      userId: userId,
-      userName: userName,
-      amount: parseFloat(amount),
-      wallet: walletAddress,
-      status: "pending",
-      timestamp: Date.now()
-    }).then(() => {
-      db.ref('users/' + userId).update({
-        balance: currentBalance - parseFloat(amount)
-      }).then(() => {
-        showToast("উইথড্র রিকোয়েস্ট সফল! অ্যাডমিন চেক করবেন।");
-        tg.sendData(JSON.stringify({ action: "withdraw", amount: parseFloat(amount), wallet: walletAddress }));
-      });
-    });
-  }
-
-  // টোস্ট মেসেজ
-  function showToast(msg, isError = false) {
-    const t = document.getElementById('toast');
-    t.innerText = msg;
-    t.className = isError ? 'toast error show' : 'toast show';
-    setTimeout(() => t.classList.remove('show'), 3000);
-  }
-</script>
-
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
 </body>
 </html>
