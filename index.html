@@ -1,313 +1,781 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1,viewport-fit=cover">
-<title>RET Miner - New Coin</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RET Coin Miner</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <style>
-:root{--bg:#0A0B14;--surface:#151729;--surface2:#1C1E32;--purple:#8B5CF6;--cyan:#06FFA5;--safe-b:env(safe-area-inset-bottom,0px)}
-*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:#fff;font-family:'Outfit',sans-serif;overflow-x:hidden}
-.font-mono{font-family:'JetBrains Mono',monospace!important}
-#app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;border-left:1px solid rgba(255,255,255,.04);border-right:1px solid rgba(255,255,255,.04)}
-.header{position:sticky;top:0;z-index:40;backdrop-filter:blur(18px);background:rgba(10,11,20,.9);border-bottom:1px solid rgba(255,255,255,.06);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:50;padding:0 12px calc(8px + var(--safe-b)) 12px;pointer-events:none}
-.bottom-nav-inner{pointer-events:auto;background:rgba(21,23,41,.95);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);border-radius:20px;display:flex;justify-content:space-around;padding:6px}
-.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 16px;border-radius:14px;border:none;background:transparent;color:rgba(255,255,255,.4);cursor:pointer}
-.nav-btn.active{background:#fff;color:#000}
-.coin-main{width:150px;height:150px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(139,92,246,.6));animation:rotate 7s linear infinite,float 3s ease-in-out infinite}
-@keyframes rotate{to{transform:rotate(360deg)}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes ping{75%,100%{transform:scale(1.2);opacity:0}}
-.card{background:#151729;border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:16px}
-.btn-p{width:100%;height:54px;border-radius:16px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 24px rgba(139,92,246,.35)}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#fff;color:#000;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13px;z-index:80;max-width:90%}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:70;display:none;align-items:flex-end;justify-content:center;padding:16px}
-.modal.show{display:flex}
-.modal-box{width:100%;max-width:430px;background:#151729;border:1px solid rgba(255,255,255,.1);border-radius:28px 28px 0 0;padding:20px;animation:slideUp .3s}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.loading{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080A14}
-.progress-ring{transform:rotate(-90deg)}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0A0B14;
+    color: #fff;
+    font-family: 'Outfit', -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .app { max-width: 430px; margin: 0 auto; padding-bottom: 100px; }
+
+  /* Header */
+  .header {
+    position: sticky; top: 0; z-index: 40;
+    backdrop-filter: blur(18px);
+    background: rgba(10,11,20,0.9);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+  }
+  .user-info { display: flex; gap: 10px; align-items: center; }
+  .user-avatar { width: 40px; height: 40px; border-radius: 999px; border: 2px solid #8B5CF6; object-fit: cover; }
+  .balance-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: #151729; border: 1px solid rgba(255,255,255,0.06);
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .level-badge {
+    height: 28px; padding: 0 10px; border-radius: 999px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    display: flex; align-items: center; font-size: 11px; font-weight: 800;
+  }
+
+  /* Mining Card */
+  .card {
+    background: #151729;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 16px;
+  }
+  .mining-core { position: relative; overflow: hidden; border-radius: 28px; padding: 20px; }
+
+  /* Coin Animation - FIXED */
+  .coin-wrapper {
+    position: relative;
+    width: 230px; height: 230px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto;
+  }
+  .coin-wrapper svg.progress-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .coin-image {
+    width: 150px; height: 150px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 30px rgba(139,92,246,0.6));
+    animation: coinFloat 3s ease-in-out infinite;
+  }
+  @keyframes coinFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* Overlay */
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(10,11,20,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 5;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 20px;
+    border-radius: 28px;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    width: 100%; height: 54px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    border: none; color: #fff;
+    font-weight: 800; font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(139,92,246,0.35);
+  }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-connect {
+    height: 44px; padding: 0 20px;
+    border-radius: 999px;
+    background: #fff; color: #000;
+    font-weight: 800; border: none; cursor: pointer;
+  }
+
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 430px; z-index: 50;
+    padding: 0 12px 8px 12px;
+  }
+  .bottom-nav-inner {
+    background: rgba(21,23,41,0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    display: flex; justify-content: space-around;
+    padding: 6px;
+  }
+  .nav-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 8px 16px; border-radius: 14px;
+    border: none; background: transparent;
+    color: rgba(255,255,255,0.4); cursor: pointer;
+  }
+  .nav-btn.active { background: #fff; color: #000; }
+  .nav-btn svg { width: 20px; height: 20px; }
+
+  /* SVG Icons */
+  .icon { width: 20px; height: 20px; fill: currentColor; }
+
+  /* Modal */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(12px);
+    z-index: 70;
+    display: none; align-items: flex-end; justify-content: center;
+    padding: 16px;
+  }
+  .modal.show { display: flex; }
+  .modal-box {
+    width: 100%; max-width: 430px;
+    background: #151729;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 28px 28px 0 0;
+    padding: 20px;
+    animation: slideUp 0.3s;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: #fff; color: #000;
+    padding: 10px 18px; border-radius: 999px;
+    font-weight: 700; font-size: 13px; z-index: 80;
+    max-width: 90%;
+  }
+
+  #ton-connect-button { display: flex; justify-content: center; margin-top: 12px; }
+  #ton-connect-button button {
+    background: #fff !important; color: #000 !important;
+    border-radius: 999px !important; font-weight: 800 !important;
+  }
+
+  .loading-screen {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; background: #080A14;
+  }
 </style>
 </head>
 <body>
-<div id="loading" class="loading">
-<div style="width:112px;height:112px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:20px">
-<div style="position:absolute;inset:0;border-radius:999px;background:linear-gradient(135deg,#1C1E32,#151729);border:1px solid rgba(255,255,255,.1);box-shadow:0 0 40px rgba(139,92,246,.3)"></div>
-<img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:90px;height:90px;object-fit:contain;position:relative;z-index:1;animation:rotate 6s linear infinite"/>
-</div>
-<h1 style="font-size:26px;font-weight:900">RET Coin</h1>
-<p class="font-mono" style="font-size:11px;letter-spacing:.22em;color:rgba(255,255,255,.4);margin-bottom:30px">NEW COIN • TELEGRAM MINING</p>
-<div id="load-steps" style="width:280px"></div>
-<div style="width:280px;margin-top:16px"><div style="display:flex;justify-content:space-between;font-size:11px" class="font-mono"><span style="color:rgba(255,255,255,.4)">BOOT</span><span id="load-pct">0%</span></div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:999px;margin-top:6px"><div id="load-bar" style="height:100%;background:linear-gradient(90deg,#8B5CF6,#06FFA5);width:0%;transition:.2s"></div></div></div>
+
+<!-- Loading -->
+<div id="loading" class="loading-screen">
+  <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:90px;height:90px;object-fit:contain;animation:coinFloat 3s ease-in-out infinite" />
+  <h1 style="font-size:26px;font-weight:900;margin-top:20px">RET Coin</h1>
+  <p class="font-mono" style="font-size:11px;letter-spacing:0.22em;color:rgba(255,255,255,0.4);margin-top:8px">LOADING...</p>
 </div>
 
-<div id="app" style="display:none">
-<div class="header">
-<div style="display:flex;gap:10px;align-items:center">
-<img id="userPhoto" src="https://i.pravatar.cc/100?img=32" style="width:40px;height:40px;border-radius:999px;border:2px solid #8B5CF6;object-fit:cover"/>
-<div style="line-height:1.1"><div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px"><span id="userName">Ret Mine</span><span style="color:#06FFA5">✔</span></div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)" id="userHandle">@ret_mine • Telegram</div></div>
-</div>
-<div style="display:flex;gap:8px;align-items:center">
-<div style="display:flex;align-items:center;gap:6px;background:#151729;border:1px solid rgba(255,255,255,.06);padding:6px 10px;border-radius:999px"><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:18px;height:18px;object-fit:contain"/><span id="topBalance" style="font-size:13px;font-weight:800">0.000</span><span style="font-size:10px;color:rgba(255,255,255,.4)">RET</span></div>
-<div id="lvlBadge" style="height:28px;padding:0 10px;border-radius:999px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);display:flex;align-items:center;font-size:11px;font-weight:800">LVL 1</div>
-</div>
+<!-- App -->
+<div id="app" class="app" style="display:none">
+  <!-- Header -->
+  <div class="header">
+    <div class="user-info">
+      <img id="userPhoto" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="user-avatar" />
+      <div>
+        <div style="font-size:13px;font-weight:700" id="userName">RET Miner</div>
+        <div class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.4)" id="userHandle">@ret_miner</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="balance-pill">
+        <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:18px;height:18px;object-fit:contain" />
+        <span id="topBalance" style="font-size:13px;font-weight:800">0.000</span>
+        <span style="font-size:10px;color:rgba(255,255,255,0.4)">RET</span>
+      </div>
+      <div class="level-badge" id="lvlBadge">LVL 1</div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main style="padding:16px">
+
+    <!-- Mine Tab -->
+    <div id="tab-mine">
+      <div class="card mining-core">
+        <!-- Not Connected Overlay -->
+        <div id="notConnectedOverlay" class="overlay" style="display:none">
+          <svg class="icon" style="width:48px;height:48px;color:#8B5CF6;margin-bottom:12px" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <h3 style="font-size:16px;font-weight:800">Connect TON Wallet</h3>
+          <p class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px">Mining starts after wallet connection</p>
+          <div id="ton-connect-button" style="margin-top:16px"></div>
+        </div>
+
+        <!-- Mining Stats -->
+        <div style="display:flex;justify-content:space-between;margin-bottom:20px">
+          <span class="font-mono" style="font-size:11px;letter-spacing:0.15em;color:rgba(255,255,255,0.4)">
+            MINING • <span id="coreStatus">PAUSED</span>
+          </span>
+          <span class="font-mono" style="font-size:11px;color:#06FFA5;background:rgba(6,255,165,0.1);border:1px solid rgba(6,255,165,0.2);padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:6px">
+            <span style="width:6px;height:6px;background:#06FFA5;border-radius:999px"></span>
+            <span id="hashRate">0.00 TH/s</span>
+          </span>
+        </div>
+
+        <!-- Coin -->
+        <div class="coin-wrapper">
+          <svg class="progress-ring" viewBox="0 0 230 230">
+            <circle cx="115" cy="115" r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+            <circle id="mineProgress" cx="115" cy="115" r="100" fill="none" stroke="url(#g2)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628 628" stroke-dashoffset="628"/>
+            <defs>
+              <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8B5CF6"/>
+                <stop offset="100%" stop-color="#06FFA5"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <img id="mainCoin" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="coin-image" alt="RET" />
+        </div>
+
+        <!-- Reward -->
+        <div style="margin-top:28px;text-align:center">
+          <div class="font-mono" style="font-size:11px;letter-spacing:0.18em;color:rgba(255,255,255,0.4);margin-bottom:6px">UNCLAIMED REWARD</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+            <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:28px;height:28px;object-fit:contain" />
+            <span id="unclaimed" style="font-size:34px;font-weight:900">0.00000</span>
+            <span style="font-size:14px;color:rgba(255,255,255,0.4)">RET</span>
+          </div>
+          <div class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px">
+            <span>≈ $<span id="usdVal">0.00</span></span>
+            <span id="timer" style="margin-left:12px">00:00:00</span>
+          </div>
+          <button id="claimBtn" class="btn-primary" style="margin-top:20px" disabled>CLAIM RET</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tasks Tab (placeholder - full logic kept) -->
+    <div id="tab-tasks" style="display:none">
+      <h2 style="font-size:16px;font-weight:800;margin-bottom:12px">Tasks</h2>
+      <div id="adsList"></div>
+    </div>
+
+    <!-- Miners Tab -->
+    <div id="tab-miners" style="display:none">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between">
+          <span class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4)">LEVEL PROGRESS</span>
+          <span style="font-size:12px;font-weight:800"><span id="lvlFrom">1</span> → <span id="lvlTo">2</span></span>
+        </div>
+        <div style="height:8px;background:rgba(0,0,0,0.3);border-radius:999px;margin-top:10px">
+          <div id="lvlProgress" style="height:100%;background:linear-gradient(90deg,#8B5CF6,#06FFA5);width:0%;border-radius:999px"></div>
+        </div>
+        <div class="font-mono" style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px">
+          <span id="lvlNeed"></span><span id="lvlRemain"></span>
+        </div>
+      </div>
+      <div id="minersList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- Friends Tab -->
+    <div id="tab-friends" style="display:none">
+      <div class="card" style="background:linear-gradient(135deg,#1A1033,#151729)">
+        <h3 style="font-size:18px;font-weight:900">Invite Squad</h3>
+        <p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">10% mining bonus</p>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <div style="flex:1;height:44px;border-radius:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;padding:0 12px;font-size:12px" class="font-mono" id="refLink">t.me/ret_bot?start=ref</div>
+          <button onclick="copyRef()" style="height:44px;width:44px;border-radius:12px;background:#fff;border:none;cursor:pointer">
+            <svg class="icon" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet Tab -->
+    <div id="tab-wallet" style="display:none">
+      <div class="card">
+        <div class="font-mono" style="font-size:11px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);margin-bottom:12px">BALANCE</div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:44px;height:44px;object-fit:contain" />
+          <div>
+            <div style="font-size:28px;font-weight:900"><span id="walletBal">0.00000</span> <span style="font-size:16px;color:rgba(255,255,255,0.4)">RET</span></div>
+            <div class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4)">LVL <span id="walletLvl">1</span> • $<span id="walletUsd">0.00</span></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px">
+          <button onclick="openWithdraw()" style="height:44px;border-radius:12px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer">Withdraw</button>
+          <button onclick="showToast('Swap coming soon')" style="height:44px;border-radius:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:800;cursor:pointer">Swap</button>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:40px;height:40px;border-radius:12px;background:#0098EA;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px">TON</div>
+          <div>
+            <div style="font-size:14px;font-weight:800">TON Wallet</div>
+            <div class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.4)" id="tonStatus">Not connected</div>
+          </div>
+        </div>
+        <div id="ton-connect-button-wallet"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button class="nav-btn active" data-tab="mine">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span style="font-size:10px">Mine</span>
+      </button>
+      <button class="nav-btn" data-tab="tasks">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        <span style="font-size:10px">Tasks</span>
+      </button>
+      <button class="nav-btn" data-tab="miners">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span style="font-size:10px">Miners</span>
+      </button>
+      <button class="nav-btn" data-tab="friends">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <span style="font-size:10px">Friends</span>
+      </button>
+      <button class="nav-btn" data-tab="wallet">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+        <span style="font-size:10px">Wallet</span>
+      </button>
+    </div>
+  </div>
 </div>
 
-<main style="padding:16px 16px 100px 16px">
-<div id="tab-mine">
-<div class="card" style="border-radius:28px;padding:20px;position:relative;overflow:hidden">
-<div id="notConnectedOverlay" style="position:absolute;inset:0;background:rgba(10,11,20,.85);backdrop-filter:blur(8px);z-index:5;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:28px">
-<img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:56px;height:56px;object-fit:contain;margin-bottom:12px"/>
-<h3 style="font-size:16px;font-weight:800">Connect TON Wallet to Start Mining</h3><p class="font-mono" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">Mining starts only after TON connected</p>
-<button onclick="openTonModal()" style="margin-top:16px;height:44px;padding:0 20px;border-radius:999px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer">Connect TON Wallet</button>
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="modal">
+  <div class="modal-box">
+    <h3 style="font-size:18px;font-weight:800">Withdraw RET</h3>
+    <p class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px">Minimum: <span id="wdMin">500</span> RET</p>
+    <input id="wdAmount" placeholder="Amount" style="width:100%;height:44px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#fff;padding:0 12px;margin-top:12px;font-family:'JetBrains Mono';font-size:13px" />
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="closeWithdraw()" style="flex:1;height:44px;border-radius:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-weight:700;cursor:pointer">Cancel</button>
+      <button onclick="confirmWithdraw()" style="flex:1;height:44px;border-radius:12px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;color:#fff;font-weight:800;cursor:pointer">Confirm</button>
+    </div>
+  </div>
 </div>
-<div style="display:flex;justify-content:space-between;margin-bottom:24px"><span class="font-mono" style="font-size:11px;letter-spacing:.15em;color:rgba(255,255,255,.4)">MINING CORE • <span id="coreStatus">PAUSED</span></span><span class="font-mono" style="font-size:11px;color:#06FFA5;background:rgba(6,255,165,.1);border:1px solid rgba(6,255,165,.2);padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;background:#06FFA5;border-radius:999px"></span><span id="hashRate">0.00 TH/s</span></span></div>
-<div style="display:flex;flex-direction:column;align-items:center">
-<div style="position:relative;width:230px;height:230px;display:flex;align-items:center;justify-content:center">
-<svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 230 230" class="progress-ring"><circle cx="115" cy="115" r="100" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/><circle id="mineProgress" cx="115" cy="115" r="100" fill="none" stroke="url(#g2)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628 628" stroke-dashoffset="0" style="transition:1s"/><defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#06FFA5"/></linearGradient></defs></svg>
-<div style="position:absolute;inset:28px;border-radius:999px;border:1px solid rgba(255,59,92,.3)"></div>
-<img id="mainCoin" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="coin-main" alt="RET NEW"/>
-<div style="position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:#0A0B14;border:1px solid rgba(255,255,255,.1);padding:4px 12px;border-radius:999px;font-size:11px" class="font-mono">⚡ <span id="hashBottom">0.00</span> TH/S</div>
-</div>
-<div style="margin-top:28px;text-align:center;width:100%">
-<div class="font-mono" style="font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.4);margin-bottom:6px">UNCLAIMED REWARD</div>
-<div style="display:flex;align-items:center;justify-content:center;gap:8px"><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:28px;height:28px;object-fit:contain"/><span id="unclaimed" style="font-size:34px;font-weight:900">0.00000</span><span style="font-size:14px;color:rgba(255,255,255,.4)">RET</span></div>
-<div class="font-mono" style="display:flex;justify-content:center;gap:12px;font-size:12px;color:rgba(255,255,255,.4);margin-top:6px"><span>≈ $<span id="usdVal">0.00</span></span><span id="timer">00:00:00</span></div>
-<button id="claimBtn" class="btn-p" style="margin-top:20px">CLAIM RET • <span id="timerBtn">00:00:00</span> • Watch Ad</button>
-<p class="font-mono" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,.3)">Mining starts after TON Wallet connected • Claim shows ad</p>
-</div>
-</div>
-</div>
-<div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,255,165,.2));display:flex;align-items:center;justify-content:center">⛏️</div><div><div class="font-mono" style="font-size:12px;color:rgba(255,255,255,.4)">CURRENT MINER</div><div style="font-size:16px;font-weight:800">Level <span id="minerLvl">1</span></div></div></div><button onclick="switchTab('miners')" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.08);border:none;color:#fff">›</button></div>
-</div>
-
-<div id="tab-tasks" style="display:none"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><h2 style="font-size:16px;font-weight:800">🔥 Ad & Legal Tasks</h2><span class="font-mono" style="font-size:11px;background:#1C1E32;padding:4px 10px;border-radius:999px">Today: <span id="adsToday">0</span></span></div><div id="adsList" style="display:flex;flex-direction:column;gap:10px"></div><h2 style="margin-top:20px;margin-bottom:12px;font-size:16px;font-weight:800">🎯 Streak</h2><div id="streakGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px"></div></div>
-<div id="tab-miners" style="display:none"><div class="card"><div style="display:flex;justify-content:space-between"><span class="font-mono" style="font-size:12px;color:rgba(255,255,255,.4)">LEVEL PROGRESS UNLIMITED</span><span style="font-size:12px;font-weight:800"><span id="lvlFrom">1</span> → <span id="lvlTo">2</span></span></div><div style="height:8px;background:rgba(0,0,0,.3);border-radius:999px;margin-top:10px"><div id="lvlProgress" style="height:100%;background:linear-gradient(90deg,#8B5CF6,#06FFA5);width:0%"></div></div><div class="font-mono" style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4);margin-top:6px"><span id="lvlNeed"></span><span id="lvlRemain"></span></div></div><div id="minersList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px;max-height:600px;overflow:auto"></div></div>
-<div id="tab-friends" style="display:none"><div style="border-radius:24px;background:linear-gradient(135deg,#8B5CF6,#4C1D95);padding:1px"><div style="border-radius:23px;background:linear-gradient(135deg,#1A1033,#151729);padding:16px"><h3 style="font-size:18px;font-weight:900">👥 Invite Squad</h3><p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">10% mining bonus</p><div style="display:flex;gap:8px;margin-top:16px"><div style="flex:1;height:44px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;padding:0 12px;font-size:12px" class="font-mono" id="refLink">t.me/ret_bot?start=ref</div><button onclick="copyRef()" style="height:44px;width:44px;border-radius:12px;background:#fff;border:none">📋</button></div></div></div><div id="squadList" style="margin-top:16px"></div></div>
-<div id="tab-wallet" style="display:none"><div class="card" style="border-radius:24px;padding:20px"><div class="font-mono" style="font-size:11px;letter-spacing:.2em;color:rgba(255,255,255,.4);margin-bottom:12px">IN-APP BALANCE</div><div style="display:flex;gap:12px;align-items:center"><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:44px;height:44px;object-fit:contain"/><div><div style="font-size:28px;font-weight:900"><span id="walletBal">0.00000</span> <span style="font-size:16px;color:rgba(255,255,255,.4)">RET</span></div><div class="font-mono" style="font-size:12px;color:rgba(255,255,255,.4)">LVL <span id="walletLvl">1</span> • $<span id="walletUsd">0.00</span></div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px"><button onclick="openWithdraw()" style="height:44px;border-radius:12px;background:#fff;color:#000;font-weight:800;border:none">Withdraw</button><button onclick="showToast('Swap soon')" style="height:44px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.1);color:#fff;font-weight:800">Swap</button></div></div>
-<div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:12px;align-items:center"><div style="width:40px;height:40px;border-radius:12px;background:#0098EA;display:flex;align-items:center;justify-content:center;font-weight:900">TON</div><div><div style="font-size:14px;font-weight:800">TON Wallet</div><div class="font-mono" style="font-size:11px;color:rgba(255,255,255,.4)" id="tonStatus">Not connected</div></div></div><button id="tonBtn" onclick="openTonModal()" style="height:36px;padding:0 16px;border-radius:999px;background:#fff;color:#000;font-weight:800;border:none;font-size:12px">Connect</button></div></div>
-</main>
-
-<div class="bottom-nav"><div class="bottom-nav-inner">
-<button class="nav-btn active" data-tab="mine"><span>⛏️</span><span>Mine</span></button>
-<button class="nav-btn" data-tab="tasks"><span>⚡</span><span>Tasks</span></button>
-<button class="nav-btn" data-tab="miners"><span>⬡</span><span>Miners</span></button>
-<button class="nav-btn" data-tab="friends"><span>👥</span><span>Friends</span></button>
-<button class="nav-btn" data-tab="wallet"><span>👛</span><span>Wallet</span></button>
-</div></div>
-</div>
-
-<div id="tonModal" class="modal"><div class="modal-box">
-<div style="display:flex;justify-content:space-between;align-items:center"><h3 style="font-size:18px;font-weight:800">Connect TON Wallet</h3><button onclick="closeTonModal()" style="width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.08);border:none;color:#fff">✕</button></div>
-<p class="font-mono" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px">Mining starts only after wallet connected</p>
-<div style="margin-top:16px;background:#0A0B14;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center">
-<div style="width:140px;height:140px;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;font-weight:800">TON QR CODE<br/>Scan with Tonkeeper</div>
-<div style="margin-top:12px;width:100%"><label class="font-mono" style="font-size:11px;color:rgba(255,255,255,.5)">Or paste TON address</label><input id="tonAddressInput" placeholder="UQAb... or EQ..." style="width:100%;height:44px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;padding:0 12px;margin-top:6px;font-family:'JetBrains Mono';font-size:12px"/></div>
-<button onclick="connectTon()" style="margin-top:16px;width:100%;height:48px;border-radius:12px;background:linear-gradient(135deg,#0098EA,#0066CC);color:#fff;font-weight:800;border:none">Connect Wallet</button>
-<p class="font-mono" style="font-size:10px;color:rgba(255,255,255,.4);margin-top:8px;text-align:center">Supports Tonkeeper, MyTonWallet, TonHub • After connect mining auto starts</p>
-</div>
-<div style="margin-top:12px;display:flex;gap:8px"><div style="flex:1;background:rgba(6,255,165,.08);border:1px solid rgba(6,255,165,.15);border-radius:12px;padding:10px"><div style="font-size:12px;font-weight:700;color:#06FFA5">✓ Secure</div><div class="font-mono" style="font-size:10px;color:rgba(255,255,255,.5)">Non-custodial, your keys</div></div><div style="flex:1;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.15);border-radius:12px;padding:10px"><div style="font-size:12px;font-weight:700;color:#8B5CF6">⚡ Instant</div><div class="font-mono" style="font-size:10px;color:rgba(255,255,255,.5)">Mining starts immediately</div></div></div>
-</div></div>
-
-<div id="adModal" class="modal"><div class="modal-box">
-<h3 style="font-size:18px;font-weight:800">Watching Ad...</h3><p class="font-mono" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px" id="adModalDesc">Monetag Zone • Reward after complete</p>
-<div style="margin-top:16px;height:160px;background:#0A0B14;border:1px solid rgba(255,255,255,.08);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-<div style="width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:#8B5CF6;border-radius:999px;animation:rotate 1s linear infinite"></div>
-<div class="font-mono" style="margin-top:12px;font-size:12px"><span id="adCountdown">5</span>s remaining</div>
-<div style="width:80%;height:4px;background:rgba(255,255,255,.1);border-radius:999px;margin-top:12px"><div id="adProgress" style="height:100%;background:#8B5CF6;width:0%;transition:.2s;border-radius:999px"></div></div>
-</div>
-</div></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-const COIN = "https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png";
-const firebaseConfig = {apiKey:"AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",authDomain:"ret-coin-mine.firebaseapp.com",databaseURL:"https://ret-coin-mine-default-rtdb.firebaseio.com",projectId:"ret-coin-mine",storageBucket:"ret-coin-mine.firebasestorage.app",messagingSenderId:"351392382831",appId:"1:351392382831:web:a84dc48733c7d5decb76de"};
-const app = initializeApp(firebaseConfig); const db = getDatabase(app); const auth = getAuth(app);
-let uid=null, userData={balance:0,unclaimed:0,miningStart:Date.now(),level:1,hashRate:0,adsToday:0,streak:[],friends:[],totalMined:0,tonConnected:false,tonAddress:''}, config={miningRate:0.000011,claimInterval:75600,usdRate:0.042,levelBase:25,claimAdZoneId:'claim_zone_default',ads:[],tasks:[]};
 
-function calcLevel(b){let base=config.levelBase||25; return Math.max(1,Math.floor(b/base)+1)}
-function calcHash(l){return (0.5+l*0.03).toFixed(2)}
-function showToast(m){let t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
-
-function getTelegramUser(){
-try{
-if(window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user){
-let u=Telegram.WebApp.initDataUnsafe.user;
-return {name:(u.first_name+' '+(u.last_name||'')).trim(), username:u.username, photo:u.photo_url};
-}
-let urlParams=new URLSearchParams(window.location.search);
-if(urlParams.get('photo_url')){ return {name:urlParams.get('first_name')||'Telegram User', username:urlParams.get('username'), photo:urlParams.get('photo_url')}; }
-}catch(e){}
-return null;
-}
-
-async function init(){
-let steps=["Checking Telegram...","Verifying wallet...","Syncing RET chain...","Loading new coin..."];
-let c=document.getElementById('load-steps');
-steps.forEach((s,i)=>{let d=document.createElement('div');d.style.cssText='display:flex;gap:12px;align-items:center;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.04);margin-bottom:8px';d.innerHTML='<div style="width:18px;height:18px;border-radius:999px;border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center" id="sc'+i+'"></div><span style="font-size:12px;color:rgba(255,255,255,.6)">'+s+'</span>';c.appendChild(d);});
-let pct=0,bar=document.getElementById('load-bar'),pctEl=document.getElementById('load-pct');
-let prog=setInterval(()=>{pct=Math.min(100,pct+Math.random()*9+3);bar.style.width=pct+'%';pctEl.textContent=Math.floor(pct)+'%';let a=Math.floor(pct/25);for(let i=0;i<4;i++){let el=document.getElementById('sc'+i);if(i<a){el.style.background='#06FFA5';el.innerHTML='✓'}else if(i===a){el.style.background='rgba(139,92,246,.2)'}} if(pct>=100){clearInterval(prog);setTimeout(()=>{document.getElementById('loading').style.display='none';document.getElementById('app').style.display='block'},400)}},120);
-
-await signInAnonymously(auth);
-onAuthStateChanged(auth, async u=>{
-if(!u) return; uid=u.uid;
-onValue(ref(db,'config'), snap=>{ if(snap.exists()){config={...config,...snap.val()}; renderAds(); } });
-const userRef=ref(db,'users/'+uid);
-onValue(userRef, snap=>{
-if(snap.exists()){ userData={...userData,...snap.val()}; } else {
-let tg=getTelegramUser();
-set(userRef,{...userData,createdAt:Date.now(),username:tg?.name||'Ret Mine',handle:tg?.username||'ret_mine',photo:tg?.photo||'',balance:0});
-userData.username=tg?.name||'Ret Mine'; userData.handle=tg?.username||'ret_mine'; userData.photo=tg?.photo||'';
-}
-userData.level=calcLevel(userData.balance);
-if(userData.tonConnected){ userData.hashRate=calcHash(userData.level); } else { userData.hashRate='0.00'; }
-updateUI();
-});
-});
-}
-
-function updateUI(){
-document.getElementById('topBalance').textContent=userData.balance.toFixed(3);
-document.getElementById('lvlBadge').textContent='LVL '+userData.level;
-document.getElementById('unclaimed').textContent=(userData.unclaimed||0).toFixed(5);
-document.getElementById('hashRate').textContent=userData.hashRate+' TH/s';
-document.getElementById('hashBottom').textContent=userData.hashRate;
-document.getElementById('coreStatus').textContent=userData.tonConnected?'ACTIVE':'PAUSED - CONNECT WALLET';
-document.getElementById('notConnectedOverlay').style.display=userData.tonConnected?'none':'flex';
-document.getElementById('minerLvl').textContent=userData.level;
-document.getElementById('walletBal').textContent=userData.balance.toFixed(5);
-document.getElementById('walletLvl').textContent=userData.level;
-document.getElementById('walletUsd').textContent=(userData.balance*(config.usdRate||0.042)).toFixed(2);
-document.getElementById('usdVal').textContent=((userData.unclaimed||0)*(config.usdRate||0.042)).toFixed(2);
-document.getElementById('adsToday').textContent=userData.adsToday||0;
-let base=config.levelBase||25; let prog=userData.balance % base;
-document.getElementById('lvlProgress').style.width=(prog/base*100)+'%';
-document.getElementById('lvlNeed').textContent=prog.toFixed(2)+' / '+base+' RET';
-document.getElementById('lvlRemain').textContent=(base-prog).toFixed(2)+' RET to next level';
-document.getElementById('lvlFrom').textContent=userData.level;
-document.getElementById('lvlTo').textContent=userData.level+1;
-document.getElementById('tonStatus').textContent=userData.tonConnected?(userData.tonAddress?userData.tonAddress.slice(0,6)+'...'+userData.tonAddress.slice(-4)+' connected':'TON connected'):'Not connected - mining paused';
-document.getElementById('tonBtn').textContent=userData.tonConnected?'Connected ✓':'Connect';
-let photoEl=document.getElementById('userPhoto');
-if(userData.photo){ photoEl.src=userData.photo; }
-let tg=getTelegramUser();
-if(tg?.photo){ photoEl.src=tg.photo; userData.photo=tg.photo; }
-if(tg?.name){ document.getElementById('userName').textContent=tg.name; }
-if(tg?.username){ document.getElementById('userHandle').textContent='@'+tg.username+' • Telegram'; }
-let claimInt=config.claimInterval||75600; let elapsed=Math.floor((Date.now()-userData.miningStart)/1000); let remain=Math.max(0,claimInt-elapsed); let pct=1-remain/claimInt; document.getElementById('mineProgress').style.strokeDasharray=(pct*628)+' 628';
-renderMiners(); renderStreak();
-}
-
-function renderAds(){
-let list=document.getElementById('adsList'); list.innerHTML='';
-let all=[...(config.ads||[]),...(config.tasks||[])];
-if(all.length===0){ all=[{id:1,title:'Watch Ad • Monetag',reward:15,desc:'30s • Zone ID from Admin',zoneId:config.claimAdZoneId||'default',type:'ad_task'},{id:2,title:'Join Telegram Channel',reward:20,desc:'Legal task • Verify',zoneId:'',type:'legal_task',link:'https://t.me/retmine'}]; }
-all.forEach(a=>{
-let isLegal=a.type==='legal_task';
-let d=document.createElement('div'); d.className='card'; d.style.cssText='display:flex;justify-content:space-between;align-items:center;background:#151729';
-d.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="width:44px;height:44px;border-radius:12px;background:'+(isLegal?'linear-gradient(135deg,rgba(6,255,165,.2),rgba(139,92,246,.2))':'linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,255,165,.15))')+';border:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center">'+(isLegal?'🔗':'▶️')+'</div><div><div style="font-size:13px;font-weight:700;display:flex;gap:6px;align-items:center">'+a.title+' <span style="font-size:10px;padding:2px 6px;border-radius:6px;background:'+(isLegal?'rgba(6,255,165,.15)':'rgba(139,92,246,.15)')+';color:'+(isLegal?'#06FFA5':'#8B5CF6')+'">'+(a.type||'ad_task')+'</span> <span style="font-size:11px;padding:2px 6px;border-radius:6px;background:rgba(6,255,165,.15);color:#06FFA5">+'+a.reward+' RET</span></div><div class="font-mono" style="font-size:10px;color:rgba(255,255,255,.4)">'+a.desc+' • Zone: '+(a.zoneId||'none')+'</div></div></div><button style="height:36px;padding:0 14px;border-radius:999px;background:#fff;color:#000;font-weight:800;border:none;font-size:12px;cursor:pointer">'+(isLegal?'Open':'Watch')+'</button>';
-d.querySelector('button').onclick=()=>{ if(isLegal){ window.open(a.link||'https://t.me/retmine','_blank'); setTimeout(async()=>{ let nb=userData.balance+a.reward; let nl=calcLevel(nb); await update(ref(db,'users/'+uid),{balance:nb,level:nl,hashRate:userData.tonConnected?calcHash(nl):'0.00'}); showToast('+'+a.reward+' RET from legal task'); },1000);} else { watchAd(a); } };
-list.appendChild(d);
-});
-}
-
-function watchAd(ad){
-document.getElementById('adModal').classList.add('show');
-document.getElementById('adModalDesc').textContent='Zone ID: '+(ad.zoneId||'default')+' • Reward '+ad.reward+' RET';
-let countdown=5; let prog=0;
-let int=setInterval(()=>{
-countdown--; prog+=20;
-document.getElementById('adCountdown').textContent=countdown;
-document.getElementById('adProgress').style.width=prog+'%';
-if(countdown<=0){ clearInterval(int); document.getElementById('adModal').classList.remove('show'); doReward(ad); }
-},1000);
-// Here you would call Monetag SDK: window.show_xxxx(ad.zoneId)
-}
-
-async function doReward(ad){
-let nb=userData.balance+ad.reward; let nl=calcLevel(nb);
-await update(ref(db,'users/'+uid),{balance:nb,totalMined:(userData.totalMined||0)+ad.reward,adsToday:(userData.adsToday||0)+1,level:nl,hashRate:userData.tonConnected?calcHash(nl):'0.00'});
-showToast('+'+ad.reward+' RET • Zone '+ad.zoneId);
-}
-
-function renderMiners(){
-let list=document.getElementById('minersList'); if(!list) return; list.innerHTML='';
-let maxShow=Math.max(50,userData.level+30);
-for(let i=1;i<=maxShow;i++){
-let need=i*(config.levelBase||25); let unlocked=userData.balance>=need; let current=userData.level===i;
-let d=document.createElement('div'); d.className='card'; d.style.cssText='display:flex;justify-content:space-between;align-items:center;'+(current?'background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(6,255,165,.1));border:1px solid rgba(139,92,246,.4)':'background:#151729');
-d.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="width:36px;height:36px;border-radius:10px;background:'+(current?'#8B5CF6':unlocked?'rgba(255,255,255,.1)':'rgba(0,0,0,.2)')+';display:flex;align-items:center;justify-content:center">⬡</div><div><div style="font-size:13px;font-weight:800">Miner Lvl '+i+' '+(current?'<span style="font-size:9px;padding:2px 6px;border-radius:999px;background:#06FFA5;color:#000">CURRENT</span>':'')+'</div><div class="font-mono" style="font-size:10px;color:rgba(255,255,255,.4)">'+(0.5+i*0.03).toFixed(2)+' TH/s • '+need+' RET</div></div></div><div>'+(unlocked?'✓':'🔒')+'</div>';
-list.appendChild(d);
-}
-}
-function renderStreak(){
-let grid=document.getElementById('streakGrid'); if(!grid) return; grid.innerHTML='';
-for(let i=1;i<=7;i++){let claimed=(userData.streak||[]).includes(i); let b=document.createElement('button'); b.style.cssText='border-radius:14px;border:1px solid '+(claimed?'rgba(6,255,165,.3)':'rgba(255,255,255,.05)')+';background:'+(claimed?'rgba(6,255,165,.15)':'#151729')+';padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer'; b.innerHTML='<span class="font-mono" style="font-size:9px;color:rgba(255,255,255,.4)">D'+i+'</span><img src="'+COIN+'" style="width:16px;height:16px;object-fit:contain"/><span style="font-size:10px;font-weight:800">'+(i*3+5)+'</span>'; b.onclick=()=>claimStreak(i); grid.appendChild(b); }
-}
-async function claimStreak(day){
-if((userData.streak||[]).includes(day)) return;
-let r=day*3+5; let nb=userData.balance+r; let nl=calcLevel(nb);
-await update(ref(db,'users/'+uid),{balance:nb,level:nl,hashRate:userData.tonConnected?calcHash(nl):'0.00',streak:[...(userData.streak||[]),day]});
-showToast('Day '+day+' +'+r+' RET');
-}
-
-function switchTab(tab){ document.querySelectorAll('[id^="tab-"]').forEach(e=>e.style.display='none'); document.getElementById('tab-'+tab).style.display='block'; document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab)); }
-window.switchTab=switchTab;
-document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
-
-window.openTonModal=()=>{ document.getElementById('tonModal').classList.add('show'); };
-window.closeTonModal=()=>{ document.getElementById('tonModal').classList.remove('show'); };
-window.connectTon=async ()=>{
-let addr=document.getElementById('tonAddressInput').value.trim();
-if(!addr){ addr='UQ'+Math.random().toString(36).slice(2,10)+'...'+Math.random().toString(36).slice(2,6); }
-let lvl=calcLevel(userData.balance); let hr=calcHash(lvl);
-await update(ref(db,'users/'+uid),{tonConnected:true,tonAddress:addr,miningStart:Date.now(),level:lvl,hashRate:hr});
-closeTonModal(); showToast('TON Connected • Mining Started ⚡');
+const firebaseConfig = {
+  apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
+  authDomain: "ret-coin-mine.firebaseapp.com",
+  databaseURL: "https://ret-coin-mine-default-rtdb.firebaseio.com",
+  projectId: "ret-coin-mine",
+  storageBucket: "ret-coin-mine.firebasestorage.app",
+  messagingSenderId: "417445689965",
+  appId: "1:417445689965:web:023edebe16193cc1e11d64"
 };
-document.getElementById('claimBtn').onclick=()=>{
-if(!userData.tonConnected){ showToast('Connect TON Wallet first'); openTonModal(); return; }
-let amount=userData.unclaimed||0; if(amount<=0.00001){ showToast('Mining... wait'); return; }
-// Claim = show ad then claim
-let claimAd={title:'Claim Ad',reward:0,zoneId:config.claimAdZoneId||'claim_zone',desc:'Claim reward ad'};
-document.getElementById('adModal').classList.add('show');
-let c=5; let iv=setInterval(()=>{c--; document.getElementById('adCountdown').textContent=c; document.getElementById('adProgress').style.width=( (5-c)*20)+'%'; if(c<=0){clearInterval(iv); document.getElementById('adModal').classList.remove('show');
-(async()=>{
-let nb=userData.balance+amount; let nl=calcLevel(nb);
-await update(ref(db,'users/'+uid),{balance:nb,unclaimed:0.00001,miningStart:Date.now(),level:nl,hashRate:calcHash(nl),totalMined:(userData.totalMined||0)+amount});
-showToast('Claimed '+amount.toFixed(5)+' RET after ad');
-})();
-}},1000);
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+// Config from admin panel (fallback defaults)
+let config = { miningRate: 0.000011, claimInterval: 75600, usdRate: 0.042, levelBase: 25, withdrawMin: 500 };
+
+let uid = null;
+let userData = {
+  balance: 0, unclaimed: 0, miningStart: Date.now(), level: 1,
+  hashRate: 0, adsToday: 0, streak: [], totalMined: 0,
+  tonConnected: false, tonAddress: ''
 };
-window.copyRef=()=>{ navigator.clipboard.writeText(document.getElementById('refLink').textContent); showToast('Copied'); };
-window.openWithdraw=()=>{ if(!userData.tonConnected){ showToast('Connect TON first'); openTonModal(); return; } if(userData.balance < (config.withdrawMin||500)){ showToast('Min '+(config.withdrawMin||500)+' RET'); return; } let a=prompt('Withdraw amount:', config.withdrawMin); if(!a) return; a=parseFloat(a); if(isNaN(a)||a>userData.balance){ showToast('Invalid'); return; } let nb=userData.balance-a; let nl=calcLevel(nb); update(ref(db,'users/'+uid),{balance:nb,level:nl,hashRate:calcHash(nl)}); push(ref(db,'withdrawals'),{uid,amount:a,status:'pending',createdAt:Date.now(),tonAddress:userData.tonAddress}); showToast('Withdraw '+a+' RET requested • Level now '+nl); };
-window.showToast=showToast;
 
-setInterval(()=>{ if(!uid||!userData.tonConnected) return; let inc=parseFloat(userData.hashRate||0)* (config.miningRate||0.000011); update(ref(db,'users/'+uid),{unclaimed:(userData.unclaimed||0)+inc}); },1000);
-setInterval(()=>{ if(!uid) return; let ci=config.claimInterval||75600; let el=Math.floor((Date.now()-userData.miningStart)/1000); let rem=Math.max(0,ci-el); let h=Math.floor(rem/3600), m=Math.floor(rem%3600/60), s=rem%60; let str=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); let t=document.getElementById('timer'); let tb=document.getElementById('timerBtn'); if(t) t.textContent=str; if(tb) tb.textContent=str; },1000);
+// TON Connect instance
+let tonConnectUI = null;
 
+// ============ HELPERS ============
+function calcLevel(balance) {
+  const base = config.levelBase || 25;
+  return Math.max(1, Math.floor(balance / base) + 1);
+}
+function calcHash(level) {
+  return (0.5 + level * 0.03).toFixed(2);
+}
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ============ TELEGRAM USER ============
+function getTelegramUser() {
+  try {
+    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      const u = Telegram.WebApp.initDataUnsafe.user;
+      return {
+        name: (u.first_name + ' ' + (u.last_name || '')).trim(),
+        username: u.username,
+        photo: u.photo_url
+      };
+    }
+  } catch (e) {}
+  return null;
+}
+
+// ============ TON CONNECT INIT ============
+function initTonConnect() {
+  // manifest URL must be public and CORS-free
+  const manifestUrl = 'https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json';
+
+  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: manifestUrl,
+    buttonRootId: 'ton-connect-button'
+  });
+
+  // Also render in wallet tab
+  const walletBtnContainer = document.getElementById('ton-connect-button-wallet');
+  if (walletBtnContainer) {
+    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: manifestUrl,
+      buttonRootId: 'ton-connect-button-wallet'
+    });
+  }
+
+  // Listen for connection status
+  tonConnectUI.onStatusChange(async (wallet) => {
+    if (wallet) {
+      const address = wallet.account.address;
+      // Save to Firebase
+      if (uid) {
+        const lvl = calcLevel(userData.balance);
+        const hr = calcHash(lvl);
+        await update(ref(db, 'users/' + uid), {
+          tonConnected: true,
+          tonAddress: address,
+          miningStart: Date.now(),
+          level: lvl,
+          hashRate: hr
+        });
+        showToast('TON Wallet Connected');
+      }
+    } else {
+      // Disconnected
+      if (uid) {
+        await update(ref(db, 'users/' + uid), {
+          tonConnected: false,
+          tonAddress: '',
+          hashRate: '0.00'
+        });
+      }
+    }
+  });
+}
+
+// ============ INIT ============
+async function init() {
+  // Telegram WebApp ready
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+  }
+
+  // Load config from Firebase
+  onValue(ref(db, 'config'), (snap) => {
+    if (snap.exists()) {
+      config = { ...config, ...snap.val() };
+    }
+  });
+
+  // Anonymous auth
+  await signInAnonymously(auth);
+
+  onAuthStateChanged(auth, async (u) => {
+    if (!u) return;
+    uid = u.uid;
+
+    const userRef = ref(db, 'users/' + uid);
+    onValue(userRef, (snap) => {
+      if (snap.exists()) {
+        userData = { ...userData, ...snap.val() };
+      } else {
+        const tg = getTelegramUser();
+        const initial = {
+          ...userData,
+          createdAt: Date.now(),
+          username: tg?.name || 'RET Miner',
+          handle: tg?.username || 'ret_miner',
+          photo: tg?.photo || '',
+          balance: 0
+        };
+        set(userRef, initial);
+        userData = initial;
+      }
+
+      // Recalculate level & hash
+      userData.level = calcLevel(userData.balance);
+      userData.hashRate = userData.tonConnected ? calcHash(userData.level) : '0.00';
+
+      updateUI();
+
+      // Show app
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    });
+  });
+
+  // Init TON Connect after auth
+  initTonConnect();
+}
+
+// ============ UI UPDATE ============
+function updateUI() {
+  // Header
+  document.getElementById('topBalance').textContent = userData.balance.toFixed(3);
+  document.getElementById('lvlBadge').textContent = 'LVL ' + userData.level;
+
+  // Mining
+  document.getElementById('unclaimed').textContent = (userData.unclaimed || 0).toFixed(5);
+  document.getElementById('hashRate').textContent = userData.hashRate + ' TH/s';
+  document.getElementById('coreStatus').textContent = userData.tonConnected ? 'ACTIVE' : 'PAUSED';
+  document.getElementById('notConnectedOverlay').style.display = userData.tonConnected ? 'none' : 'flex';
+
+  // Usd
+  document.getElementById('usdVal').textContent = ((userData.unclaimed || 0) * (config.usdRate || 0.042)).toFixed(2);
+
+  // Wallet tab
+  document.getElementById('walletBal').textContent = userData.balance.toFixed(5);
+  document.getElementById('walletLvl').textContent = userData.level;
+  document.getElementById('walletUsd').textContent = (userData.balance * (config.usdRate || 0.042)).toFixed(2);
+  document.getElementById('tonStatus').textContent = userData.tonConnected
+    ? (userData.tonAddress ? userData.tonAddress.slice(0, 6) + '...' + userData.tonAddress.slice(-4) : 'Connected')
+    : 'Not connected';
+
+  // Level progress
+  const base = config.levelBase || 25;
+  const prog = userData.balance % base;
+  document.getElementById('lvlProgress').style.width = (prog / base * 100) + '%';
+  document.getElementById('lvlNeed').textContent = prog.toFixed(2) + ' / ' + base + ' RET';
+  document.getElementById('lvlRemain').textContent = (base - prog).toFixed(2) + ' RET to next level';
+  document.getElementById('lvlFrom').textContent = userData.level;
+  document.getElementById('lvlTo').textContent = userData.level + 1;
+
+  // User info
+  const tg = getTelegramUser();
+  if (tg?.photo) document.getElementById('userPhoto').src = tg.photo;
+  if (tg?.name) document.getElementById('userName').textContent = tg.name;
+  if (tg?.username) document.getElementById('userHandle').textContent = '@' + tg.username;
+
+  // Claim button
+  const claimBtn = document.getElementById('claimBtn');
+  const remaining = getClaimRemaining();
+  if (remaining > 0) {
+    claimBtn.disabled = true;
+    claimBtn.textContent = 'CLAIM IN ' + formatTime(remaining);
+  } else if (userData.unclaimed > 0.00001) {
+    claimBtn.disabled = false;
+    claimBtn.textContent = 'CLAIM RET';
+  } else {
+    claimBtn.disabled = true;
+    claimBtn.textContent = 'MINING...';
+  }
+
+  // Progress ring
+  const claimInt = config.claimInterval || 75600;
+  const elapsed = Math.floor((Date.now() - userData.miningStart) / 1000);
+  const pct = Math.min(1, elapsed / claimInt);
+  document.getElementById('mineProgress').style.strokeDasharray = (pct * 628) + ' 628';
+
+  // Withdraw min
+  document.getElementById('wdMin').textContent = config.withdrawMin || 500;
+
+  renderMiners();
+  renderStreak();
+}
+
+function getClaimRemaining() {
+  const claimInt = config.claimInterval || 75600;
+  const elapsed = Math.floor((Date.now() - userData.miningStart) / 1000);
+  return Math.max(0, claimInt - elapsed);
+}
+
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+}
+
+// ============ RENDER MINERS ============
+function renderMiners() {
+  const list = document.getElementById('minersList');
+  if (!list) return;
+  list.innerHTML = '';
+  const maxShow = Math.max(50, userData.level + 30);
+  for (let i = 1; i <= maxShow; i++) {
+    const need = i * (config.levelBase || 25);
+    const unlocked = userData.balance >= need;
+    const current = userData.level === i;
+    const d = document.createElement('div');
+    d.className = 'card';
+    d.style.cssText = 'display:flex;justify-content:space-between;align-items:center;' + (current ? 'background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(6,255,165,0.1));border:1px solid rgba(139,92,246,0.4)' : '');
+    d.innerHTML = `
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="width:36px;height:36px;border-radius:10px;background:${current ? '#8B5CF6' : unlocked ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)'};display:flex;align-items:center;justify-content:center">
+          <svg class="icon" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:800">Miner Lvl ${i} ${current ? '<span style="font-size:9px;padding:2px 6px;border-radius:999px;background:#06FFA5;color:#000">CURRENT</span>' : ''}</div>
+          <div class="font-mono" style="font-size:10px;color:rgba(255,255,255,0.4)">${(0.5 + i * 0.03).toFixed(2)} TH/s • ${need} RET</div>
+        </div>
+      </div>
+      <div>${unlocked ? '✓' : '🔒'}</div>`;
+    list.appendChild(d);
+  }
+}
+
+// ============ RENDER STREAK ============
+function renderStreak() {
+  const grid = document.getElementById('streakGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 1; i <= 7; i++) {
+    const claimed = (userData.streak || []).includes(i);
+    const b = document.createElement('button');
+    b.style.cssText = 'border-radius:14px;border:1px solid ' + (claimed ? 'rgba(6,255,165,0.3)' : 'rgba(255,255,255,0.05)') + ';background:' + (claimed ? 'rgba(6,255,165,0.15)' : '#151729') + ';padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer';
+    b.innerHTML = '<span class="font-mono" style="font-size:9px;color:rgba(255,255,255,0.4)">D' + i + '</span><span style="font-size:10px;font-weight:800">' + (i * 3 + 5) + '</span>';
+    b.onclick = () => claimStreak(i);
+    grid.appendChild(b);
+  }
+}
+
+async function claimStreak(day) {
+  if ((userData.streak || []).includes(day)) return;
+  const reward = day * 3 + 5;
+  const nb = userData.balance + reward;
+  const nl = calcLevel(nb);
+  await update(ref(db, 'users/' + uid), {
+    balance: nb,
+    level: nl,
+    hashRate: userData.tonConnected ? calcHash(nl) : '0.00',
+    streak: [...(userData.streak || []), day]
+  });
+  showToast('Day ' + day + ' +' + reward + ' RET');
+}
+
+// ============ TABS ============
+function switchTab(tab) {
+  document.querySelectorAll('[id^="tab-"]').forEach(e => e.style.display = 'none');
+  document.getElementById('tab-' + tab).style.display = 'block';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+}
+document.querySelectorAll('.nav-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+// ============ CLAIM ============
+document.getElementById('claimBtn').onclick = async () => {
+  if (!userData.tonConnected) {
+    showToast('Connect TON Wallet first');
+    return;
+  }
+  const remaining = getClaimRemaining();
+  if (remaining > 0) {
+    showToast('Wait ' + formatTime(remaining));
+    return;
+  }
+  const amount = userData.unclaimed || 0;
+  if (amount <= 0.00001) {
+    showToast('Nothing to claim yet');
+    return;
+  }
+
+  // TODO: Monetag ad integration here
+  // For now, just claim directly
+  const nb = userData.balance + amount;
+  const nl = calcLevel(nb);
+  await update(ref(db, 'users/' + uid), {
+    balance: nb,
+    unclaimed: 0,  // FIXED: was 0.00001
+    miningStart: Date.now(),
+    level: nl,
+    hashRate: calcHash(nl),
+    totalMined: (userData.totalMined || 0) + amount
+  });
+  showToast('Claimed ' + amount.toFixed(5) + ' RET');
+};
+
+// ============ WITHDRAW ============
+window.openWithdraw = () => {
+  if (!userData.tonConnected) {
+    showToast('Connect TON first');
+    return;
+  }
+  if (userData.balance < (config.withdrawMin || 500)) {
+    showToast('Minimum ' + (config.withdrawMin || 500) + ' RET');
+    return;
+  }
+  document.getElementById('withdrawModal').classList.add('show');
+};
+window.closeWithdraw = () => document.getElementById('withdrawModal').classList.remove('show');
+window.confirmWithdraw = async () => {
+  const amount = parseFloat(document.getElementById('wdAmount').value);
+  if (isNaN(amount) || amount <= 0 || amount > userData.balance) {
+    showToast('Invalid amount');
+    return;
+  }
+  if (amount < (config.withdrawMin || 500)) {
+    showToast('Minimum ' + (config.withdrawMin || 500) + ' RET');
+    return;
+  }
+  const nb = userData.balance - amount;
+  const nl = calcLevel(nb);
+  await update(ref(db, 'users/' + uid), {
+    balance: nb,
+    level: nl,
+    hashRate: calcHash(nl)
+  });
+  await push(ref(db, 'withdrawals'), {
+    uid,
+    amount,
+    status: 'pending',
+    createdAt: Date.now(),
+    tonAddress: userData.tonAddress
+  });
+  closeWithdraw();
+  showToast('Withdraw requested: ' + amount + ' RET');
+};
+
+// ============ REFERRAL ============
+window.copyRef = () => {
+  navigator.clipboard.writeText(document.getElementById('refLink').textContent);
+  showToast('Copied');
+};
+
+// ============ MINING LOOP ============
+setInterval(() => {
+  if (!uid || !userData.tonConnected) return;
+  const inc = parseFloat(userData.hashRate || 0) * (config.miningRate || 0.000011);
+  update(ref(db, 'users/' + uid), { unclaimed: (userData.unclaimed || 0) + inc });
+}, 1000);
+
+// ============ TIMER UPDATE ============
+setInterval(() => {
+  if (!uid) return;
+  const remaining = getClaimRemaining();
+  const timerEl = document.getElementById('timer');
+  if (timerEl) timerEl.textContent = formatTime(remaining);
+
+  // Update claim button
+  const claimBtn = document.getElementById('claimBtn');
+  if (remaining > 0) {
+    claimBtn.disabled = true;
+    claimBtn.textContent = 'CLAIM IN ' + formatTime(remaining);
+  } else if (userData.unclaimed > 0.00001) {
+    claimBtn.disabled = false;
+    claimBtn.textContent = 'CLAIM RET';
+  }
+}, 1000);
+
+// ============ START ============
 init();
 </script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
-                               </html>
+</body>
+      </html>
