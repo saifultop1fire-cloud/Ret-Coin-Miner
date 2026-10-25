@@ -6,582 +6,606 @@
 <title>RET Coin Miner</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<!-- Monetag SDK (এখানে তোমার Monetag এর আসল স্ক্রিপ্ট লিংক বসাতে হবে) -->
+<!-- <script src="https://your-monetag-sdk-link.js"></script> -->
 <style>
-  @font-face {
-    font-family: "Optimistic";
-    font-style: normal;
-    font-weight: 400 600;
-    font-display: swap;
-    src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+  
+  :root {
+    --bg-color: #F4F5F7;
+    --card-bg: #FFFFFF;
+    --text-main: #1C1C1E;
+    --text-sub: #8E8E93;
+    --primary: #45A6F5;
+    --primary-light: #E8F3FD;
+    --green: #34C759;
+    --red: #FF3B30;
+    --border: #E5E5EA;
+    --nav-bg: rgba(255, 255, 255, 0.95);
   }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
-    background: #0A0B14;
-    color: #fff;
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
     user-select: none;
-  }
-  .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
-
-  #app {
-    max-width: 430px;
-    margin: 0 auto;
-    min-height: 100vh;
-    background: #0A0B14;
-    position: relative;
-    border-left: 1px solid rgba(255,255,255,0.04);
-    border-right: 1px solid rgba(255,255,255,0.04);
     padding-bottom: 100px;
   }
-
-  /* Header */
+  .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .icon { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+  
+  /* Security Block Screen */
+  #securityBlock {
+    display: none; position: fixed; inset: 0; background: #fff; z-index: 9999;
+    flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;
+  }
+  #securityBlock h2 { color: var(--red); margin-bottom: 10px; }
+  
+  /* ========== Header ========== */
   .header {
     position: sticky; top: 0; z-index: 40;
-    backdrop-filter: blur(18px);
-    background: rgba(10,11,20,0.9);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    height: 64px;
+    background: var(--bg-color);
+    padding: 12px 16px;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 14px;
   }
-  .user-avatar {
-    width: 40px; height: 40px; border-radius: 999px;
-    border: 2px solid #8B5CF6;
-    object-fit: cover;
-    background: #1C1E32;
-  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #ddd; }
   .balance-pill {
     display: flex; align-items: center; gap: 6px;
-    background: #151729;
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 6px 10px;
-    border-radius: 999px;
+    background: var(--card-bg); padding: 6px 10px;
+    border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    font-weight: 700; font-size: 14px;
   }
-  .level-badge {
-    height: 28px; padding: 0 10px; border-radius: 999px;
-    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
-    display: flex; align-items: center;
-    font-size: 11px; font-weight: 800;
+  .balance-pill img { width: 16px; height: 16px; }
+  .add-btn {
+    width: 20px; height: 20px; border-radius: 50%; background: var(--primary);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: bold; margin-left: 2px; cursor: pointer;
+  }
+  .level-pill {
+    background: #FFF6E5; color: #FF9500;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 4px;
   }
 
-  /* Cards */
+  /* ========== Tabs ========== */
+  .tab-section { display: none; padding: 0 16px; animation: fadeIn 0.3s ease; }
+  .tab-section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ========== Cards ========== */
   .card {
-    background: #151729;
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--card-bg);
     border-radius: 20px;
     padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
   }
 
-  /* Mining Core */
-  .mining-core {
-    position: relative;
-    border-radius: 28px;
-    padding: 20px;
-    overflow: hidden;
+  /* ========== MINE TAB ========== */
+  .mine-card {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; overflow: hidden; padding-top: 20px;
   }
-
-  /* Coin Wrapper - FIXED rotation */
-  .coin-wrapper {
-    position: relative;
-    width: 230px; height: 230px;
+  .mine-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; }
+  .mine-title { font-size: 14px; color: var(--text-sub); font-weight: 500; }
+  .mine-subtitle { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .timer-badge {
+    background: #E8F8EC; color: var(--green);
+    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; gap: 4px;
+  }
+  
+  .coin-container {
+    position: relative; width: 220px; height: 220px;
     display: flex; align-items: center; justify-content: center;
-    margin: 0 auto;
+    margin: 20px 0;
   }
-  .coin-wrapper .progress-svg {
-    position: absolute;
-    inset: 0;
-    width: 100%; height: 100%;
-    transform: rotate(-90deg);
-    pointer-events: none;
+  .coin-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 4px solid var(--primary-light);
+    border-top-color: var(--primary);
+    animation: spin 20s linear infinite;
   }
-  .coin-image {
-    width: 150px; height: 150px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 30px rgba(139,92,246,0.6));
-    animation: coinFloat 3s ease-in-out infinite;
-    will-change: transform;
+  .coin-ring-inner {
+    position: absolute; inset: 10px;
+    border-radius: 50%;
+    border: 2px dashed #D1E8FA;
   }
-  @keyframes coinFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+  .main-coin {
+    width: 150px; height: 150px; object-fit: contain;
+    position: relative; z-index: 2;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 10px 20px rgba(69, 166, 245, 0.3));
   }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-  /* TON Connect Overlay */
-  .connect-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(10,11,20,0.88);
-    backdrop-filter: blur(10px);
-    z-index: 10;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    text-align: center;
-    padding: 20px;
-    border-radius: 28px;
-  }
-  .connect-overlay button {
-    margin-top: 16px;
-    height: 46px;
-    padding: 0 24px;
-    border-radius: 999px;
-    background: #fff;
-    color: #000;
-    font-weight: 800;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* Buttons */
+  .unclaimed-text { color: var(--text-sub); font-size: 14px; }
+  .unclaimed-amount { font-size: 36px; font-weight: 800; margin: 4px 0; color: var(--text-main); }
+  .unclaimed-amount span { font-size: 18px; color: var(--text-sub); font-weight: 600; }
+  .unclaimed-sub { color: var(--text-sub); font-size: 13px; margin-bottom: 16px; }
+  
   .btn-primary {
-    width: 100%; height: 54px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
-    border: none; color: #fff;
-    font-weight: 800; font-size: 15px;
-    cursor: pointer;
-    box-shadow: 0 8px 24px rgba(139,92,246,0.35);
-    transition: opacity 0.2s;
+    width: 100%; height: 54px; border-radius: 16px;
+    background: var(--primary); color: #fff;
+    font-size: 16px; font-weight: 700; border: none;
+    cursor: pointer; transition: opacity 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
   }
-  .btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    box-shadow: none;
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .stats-list { margin-top: 20px; width: 100%; }
+  .stat-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; border-bottom: 1px solid var(--border);
   }
+  .stat-item:last-child { border-bottom: none; }
+  .stat-left { display: flex; align-items: center; gap: 12px; font-weight: 500; }
+  .stat-icon {
+    width: 32px; height: 32px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .stat-val { font-weight: 700; }
+  .stat-val.green { color: var(--green); }
+  .stat-val small { display: block; color: var(--text-sub); font-weight: 400; font-size: 11px; text-align: right; }
 
-  /* Bottom Nav */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 100%; max-width: 430px;
-    z-index: 50;
-    padding: 0 12px 8px 12px;
+  /* ========== TASKS TAB ========== */
+  .section-title { font-size: 14px; font-weight: 700; margin: 16px 0 12px 4px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
+  
+  .daily-checkin { display: flex; justify-content: space-between; margin-bottom: 16px; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .day-box {
+    flex: 1; min-width: 44px; background: var(--bg-color); border-radius: 12px;
+    padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border: 1px solid var(--border); transition: all 0.3s;
   }
-  .bottom-nav-inner {
-    background: rgba(21,23,41,0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    display: flex;
-    justify-content: space-around;
-    padding: 6px;
+  .day-box.active { background: var(--primary-light); border-color: var(--primary); }
+  .day-box.claimed { background: #E8F8EC; border-color: var(--green); }
+  .day-label { font-size: 10px; color: var(--text-sub); }
+  .day-reward { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 2px; }
+  .day-reward img { width: 12px; height: 12px; }
+
+  .task-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; background: var(--bg-color); border-radius: 16px; margin-bottom: 10px;
+  }
+  .task-info { display: flex; align-items: center; gap: 12px; }
+  .task-icon-wrap {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+  }
+  .task-text h4 { font-size: 15px; font-weight: 600; }
+  .task-text p { font-size: 12px; color: var(--text-sub); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .task-text p img { width: 12px; height: 12px; }
+  .task-btn {
+    background: var(--primary); color: #fff; border: none;
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700;
+    cursor: pointer;
+  }
+  .task-btn:disabled { background: #D1D1D6; cursor: not-allowed; }
+
+  /* ========== MINERS TAB ========== */
+  .miner-stats-header {
+    display: flex; justify-content: space-between; text-align: center;
+    margin-bottom: 16px;
+  }
+  .miner-stat-box {
+    flex: 1; background: var(--bg-color); border-radius: 16px; padding: 12px;
+    margin: 0 4px;
+  }
+  .miner-stat-val { font-size: 20px; font-weight: 800; }
+  .miner-stat-val.green { color: var(--green); }
+  .miner-stat-label { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+  .level-progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin: 8px 0; overflow: hidden; }
+  .level-progress-fill { height: 100%; background: var(--primary); border-radius: 3px; transition: width 0.3s; }
+
+  .level-list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; background: var(--card-bg); border-radius: 16px; margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid transparent;
+  }
+  .level-list-item.current { border-color: var(--primary); background: var(--primary-light); }
+  .level-list-item.locked { opacity: 0.6; }
+  .lvl-left { display: flex; align-items: center; gap: 12px; }
+  .lvl-badge {
+    width: 44px; height: 44px; border-radius: 12px; background: var(--bg-color);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--text-sub); font-weight: 600;
+  }
+  .lvl-badge span { font-size: 16px; font-weight: 800; color: var(--text-main); line-height: 1; }
+  .current .lvl-badge { background: var(--primary); color: #fff; }
+  .current .lvl-badge span { color: #fff; }
+  .lvl-info h3 { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+  .lvl-info p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+  .lvl-price { text-align: right; }
+  .lvl-price h3 { font-size: 16px; font-weight: 700; }
+  .lvl-price p { font-size: 12px; color: #FF9500; font-weight: 600; }
+  .badge-current { background: var(--primary); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; }
+
+  /* ========== FRIENDS TAB ========== */
+  .profile-card { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .profile-avatar { width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px; }
+  .profile-info h2 { font-size: 20px; font-weight: 800; }
+  .profile-info p { font-size: 14px; color: var(--text-sub); }
+  .profile-badges { display: flex; gap: 6px; margin-top: 6px; }
+  .p-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--bg-color); color: var(--text-sub); display: flex; align-items: center; gap: 4px; font-weight: 600; }
+  .p-badge.red { color: var(--red); background: #FFEBE9; }
+
+  .invite-card { text-align: center; background: linear-gradient(180deg, #E8F3FD 0%, #FFFFFF 100%); }
+  .invite-heart { width: 80px; height: 80px; margin: 0 auto 16px; }
+  .invite-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .invite-card p { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; }
+  .invite-btns { display: flex; gap: 10px; }
+  .invite-btn {
+    flex: 1; height: 48px; border-radius: 12px; border: none;
+    font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;
+    cursor: pointer;
+  }
+  .invite-btn.copy { background: var(--primary-light); color: var(--primary); }
+  .invite-btn.share { background: var(--primary); color: #fff; }
+  
+  .squad-stats { display: flex; gap: 10px; margin-top: 16px; }
+  .squad-box { flex: 1; background: var(--bg-color); padding: 12px; border-radius: 12px; text-align: center; }
+  .squad-box h3 { font-size: 18px; font-weight: 800; }
+  .squad-box p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+  /* ========== WALLET TAB ========== */
+  .wallet-card { text-align: center; padding: 24px 16px; }
+  .wallet-icon { width: 64px; height: 64px; margin-bottom: 12px; }
+  .wallet-bal { font-size: 36px; font-weight: 800; }
+  .wallet-bal span { font-size: 16px; color: var(--text-sub); }
+  .wallet-usd { font-size: 14px; color: var(--green); font-weight: 600; margin-top: 4px; }
+  .wallet-btns { display: flex; gap: 10px; margin-top: 20px; }
+  .wallet-btn { flex: 1; height: 48px; border-radius: 12px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .wallet-btn.withdraw { background: var(--primary); color: #fff; }
+  .wallet-btn.buy { background: var(--primary-light); color: var(--primary); }
+  
+  .ton-card { display: flex; align-items: center; justify-content: space-between; }
+  .ton-left { display: flex; align-items: center; gap: 12px; }
+  .ton-icon { width: 40px; height: 40px; background: #0098EA; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+  .ton-info h4 { font-size: 15px; font-weight: 700; }
+  .ton-info p { font-size: 13px; color: var(--text-sub); }
+  .btn-connect { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-disconnect { background: #FFEBE9; color: var(--red); border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
+
+  .history-tabs { display: flex; background: var(--bg-color); padding: 4px; border-radius: 12px; margin-bottom: 16px; }
+  .history-tab { flex: 1; text-align: center; padding: 8px; border-radius: 10px; font-size: 14px; font-weight: 600; color: var(--text-sub); cursor: pointer; }
+  .history-tab.active { background: #fff; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+  .history-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .history-list-item:last-child { border-bottom: none; }
+  .history-info { display: flex; align-items: center; gap: 12px; }
+  .history-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; }
+  .history-text h4 { font-size: 15px; font-weight: 600; }
+  .history-text p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+  .history-amount { text-align: right; }
+  .history-amount h4 { font-size: 15px; font-weight: 700; color: var(--green); }
+  .history-amount p { font-size: 12px; color: var(--text-sub); margin-top: 2px; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+
+  /* ========== Navigation ========== */
+  .bottom-nav {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 400px;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 50; pointer-events: none;
+  }
+  .nav-pill {
+    background: var(--nav-bg); backdrop-filter: blur(10px);
+    border-radius: 30px; display: flex; justify-content: space-around;
+    padding: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    flex: 1; pointer-events: auto;
   }
   .nav-btn {
-    display: flex; flex-direction: column;
-    align-items: center; gap: 3px;
-    padding: 8px 12px;
-    border-radius: 14px;
-    border: none;
-    background: transparent;
-    color: rgba(255,255,255,0.4);
-    cursor: pointer;
-    transition: background 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    border: none; background: transparent; color: var(--text-sub);
+    padding: 8px 16px; border-radius: 20px; cursor: pointer;
+    transition: all 0.2s; font-size: 10px; font-weight: 600;
   }
-  .nav-btn.active { background: #fff; color: #000; }
-  .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
-  .nav-btn span { font-size: 10px; font-weight: 600; }
+  .nav-btn.active { color: var(--primary); }
+  .nav-btn.active .icon { fill: var(--primary); }
+  
+  .float-mine-btn {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--primary); color: #fff;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 4px solid var(--bg-color); margin-right: 12px;
+    box-shadow: 0 8px 20px rgba(69, 166, 245, 0.4);
+    cursor: pointer; pointer-events: auto;
+    z-index: 51;
+  }
+  .float-mine-btn .icon { width: 24px; height: 24px; fill: #fff; margin-bottom: 2px; }
+  .float-mine-btn span { font-size: 10px; font-weight: 700; }
 
-  /* SVG Icons */
-  .icon { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
-  .icon-lg { width: 28px; height: 28px; fill: currentColor; }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 90px; left: 50%;
-    transform: translateX(-50%);
-    background: #fff; color: #000;
-    padding: 10px 18px;
-    border-radius: 999px;
-    font-weight: 700; font-size: 13px;
-    z-index: 100;
-    max-width: 90%;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    animation: toastIn 0.3s;
-  }
-  @keyframes toastIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-
-  /* Modal */
-  .modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(12px);
-    z-index: 70;
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 16px;
-  }
+  /* ========== Modals & Overlays ========== */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: flex-end; justify-content: center; padding: 16px; }
   .modal.show { display: flex; }
-  .modal-box {
-    width: 100%; max-width: 430px;
-    background: #151729;
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 28px 28px 0 0;
-    padding: 20px;
-    animation: slideUp 0.3s;
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  .input-field {
-    width: 100%;
-    height: 44px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    color: #fff;
-    padding: 0 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    outline: none;
-  }
-
-  /* Loading */
-  .loading-screen {
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: #080A14;
-  }
-  .loading-coin {
-    width: 90px; height: 90px;
-    object-fit: contain;
-    animation: coinFloat 3s ease-in-out infinite;
-  }
-
-  /* Task Cards */
-  .task-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #151729;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 14px;
-    gap: 12px;
-  }
-  .task-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.05);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .task-icon svg { width: 22px; height: 22px; fill: currentColor; }
-  .task-btn {
-    height: 36px;
-    padding: 0 16px;
-    border-radius: 999px;
-    background: #fff;
-    color: #000;
-    font-weight: 800;
-    border: none;
-    font-size: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-
-  /* Streak */
-  .streak-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-  }
-  .streak-item {
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.05);
-    background: #151729;
-    padding: 10px 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .streak-item.claimed {
-    background: rgba(6,255,165,0.15);
-    border-color: rgba(6,255,165,0.3);
-  }
-
-  /* Miners list */
-  .miner-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #151729;
-    border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 16px;
-    padding: 12px;
-  }
-  .miner-item.current {
-    background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,255,165,0.1));
-    border-color: rgba(139,92,246,0.4);
-  }
-  .miner-icon {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  /* Hidden sections */
-  .tab-section { display: none; }
-  .tab-section.active { display: block; }
+  .modal-box { width: 100%; max-width: 400px; background: #fff; border-radius: 24px; padding: 24px; animation: slideUp 0.3s; text-align: center; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  
+  .ad-loading-circle { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+  
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  
+  .loading-screen { position: fixed; inset: 0; background: #fff; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .loading-spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body>
 
+<!-- Security Block -->
+<div id="securityBlock">
+  <svg style="width: 64px; height: 64px; fill: var(--red); margin-bottom: 16px;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+  <h2>Access Denied</h2>
+  <p style="color: var(--text-sub); margin-top: 8px;">This app can only be accessed inside Telegram.<br>Please open via our official bot.</p>
+</div>
+
 <!-- Loading Screen -->
 <div id="loading" class="loading-screen">
-  <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="loading-coin" />
-  <h1 style="font-size:26px;font-weight:900;margin-top:20px">RET Coin</h1>
-  <p class="font-mono" style="font-size:11px;letter-spacing:0.22em;color:rgba(255,255,255,0.4);margin-top:8px">LOADING...</p>
+  <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width: 80px; height: 80px; margin-bottom: 20px; animation: float 2s infinite;" alt="RET" />
+  <div class="loading-spinner"></div>
 </div>
 
-<!-- Main App -->
-<div id="app" style="display:none">
+<!-- Header -->
+<div id="header" class="header" style="display: none;">
+  <div class="header-left">
+    <img id="userAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="avatar" />
+    <div class="balance-pill">
+      <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" />
+      <span id="headerBalance">0.0</span>
+      <span style="color: var(--text-sub); font-size: 12px;">RET</span>
+      <div class="add-btn" onclick="switchTab('wallet')">+</div>
+    </div>
+  </div>
+  <div class="level-pill">
+    <svg class="icon" style="width: 14px; height: 14px;" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    Level <span id="headerLevel">1</span>
+  </div>
+</div>
 
-  <!-- Header -->
-  <div class="header">
-    <div style="display:flex;gap:10px;align-items:center">
-      <img id="userPhoto" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="user-avatar" onerror="this.src='https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png'" />
-      <div style="line-height:1.2">
-        <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px">
-          <span id="userName">RET Miner</span>
-          <svg style="width:12px;height:12px;fill:#06FFA5" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-        </div>
-        <div class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.4)" id="userHandle">@ret_miner</div>
+<!-- ==================== TAB: MINE ==================== -->
+<div id="tab-mine" class="tab-section active">
+  <div class="card mine-card">
+    <div class="mine-header">
+      <div>
+        <div class="mine-title">Level <span id="mineLevel">1</span> Miner</div>
+        <div class="mine-subtitle">Cloud Mining</div>
+      </div>
+      <div class="timer-badge">
+        <span style="width: 6px; height: 6px; background: var(--green); border-radius: 50%;"></span>
+        <span id="mineTimer">00:00:00</span>
       </div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center">
-      <div class="balance-pill">
-        <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:18px;height:18px;object-fit:contain" />
-        <span id="topBalance" style="font-size:13px;font-weight:800">0.000</span>
-        <span style="font-size:10px;color:rgba(255,255,255,0.4)">RET</span>
+
+    <div class="coin-container">
+      <div class="coin-ring"></div>
+      <div class="coin-ring-inner"></div>
+      <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="main-coin" alt="Coin" />
+    </div>
+
+    <div class="unclaimed-text">Unclaimed reward</div>
+    <div class="unclaimed-amount font-mono"><span id="unclaimedAmount">0.00000</span> <span>RET</span></div>
+    <div class="unclaimed-sub">≈ $<span id="unclaimedUsd">0.0000</span> • <span id="mineHash">0.00</span> TH/s</div>
+
+    <button id="claimBtn" class="btn-primary" onclick="claimMining()">Claim Reward</button>
+  </div>
+
+  <div class="section-title">MINER</div>
+  <div class="card stats-list" style="padding-top: 0; padding-bottom: 0;">
+    <div class="stat-item">
+      <div class="stat-left">
+        <div class="stat-icon" style="background: #45A6F5;"><svg class="icon" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+        Mining Speed
       </div>
-      <div class="level-badge" id="lvlBadge">LVL 1</div>
+      <div class="stat-val" id="statSpeed">0.53 TH/s</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-left">
+        <div class="stat-icon" style="background: #34C759;"><svg class="icon" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg></div>
+        24h Output
+      </div>
+      <div class="stat-val green" id="stat24h">+0.0 RET</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-left">
+        <div class="stat-icon" style="background: #FF9500;"><svg class="icon" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+        Level <span id="statLevel">1</span>
+      </div>
+      <div class="stat-val" style="color: var(--text-sub);">Upgrade to mine faster</div>
     </div>
   </div>
 
-  <!-- ========== TAB: MINE ========== -->
-  <main id="tab-mine" class="tab-section active" style="padding:16px;padding-bottom:100px">
-
-    <div class="card mining-core">
-      <!-- Connect Overlay -->
-      <div id="connectOverlay" class="connect-overlay">
-        <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:56px;height:56px;object-fit:contain;margin-bottom:12px;animation:coinFloat 3s ease-in-out infinite" />
-        <h3 style="font-size:16px;font-weight:800">Connect TON Wallet</h3>
-        <p class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px">Mining will start after connection</p>
-        <button id="connectBtn">
-          <svg style="width:18px;height:18px;fill:#0098EA" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.36-.48.99-.74 3.87-1.69 6.45-2.8 7.75-3.33 3.69-1.54 4.46-1.81 4.96-1.82.11 0 .35.03.51.16.13.11.17.26.19.38.01.08.02.27.01.33z"/></svg>
-          Connect Wallet
-        </button>
+  <div class="section-title">MY HOLDINGS</div>
+  <div class="card">
+    <div class="stat-item" style="padding-top: 0;">
+      <div class="stat-left">
+        <div class="stat-icon" style="background: #A855F7;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div>
+        In-App
       </div>
-
-      <!-- Stats -->
-      <div style="display:flex;justify-content:space-between;margin-bottom:20px;position:relative;z-index:2">
-        <span class="font-mono" style="font-size:11px;letter-spacing:0.15em;color:rgba(255,255,255,0.4)">
-          MINING <span id="coreStatus">PAUSED</span>
-        </span>
-        <span class="font-mono" style="font-size:11px;color:#06FFA5;background:rgba(6,255,165,0.1);border:1px solid rgba(6,255,165,0.2);padding:4px 10px;border-radius:999px;display:flex;align-items:center;gap:6px">
-          <span style="width:6px;height:6px;background:#06FFA5;border-radius:999px;animation:pulse 2s infinite"></span>
-          <span id="hashRate">0.00 TH/s</span>
-        </span>
-      </div>
-
-      <!-- Coin -->
-      <div class="coin-wrapper">
-        <svg class="progress-svg" viewBox="0 0 230 230">
-          <circle cx="115" cy="115" r="100" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
-          <circle id="mineProgress" cx="115" cy="115" r="100" fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="628 628" stroke-dashoffset="628" style="transition:stroke-dashoffset 0.5s"/>
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#8B5CF6"/>
-              <stop offset="100%" stop-color="#06FFA5"/>
-            </linearGradient>
-          </defs>
-        </svg>
-        <img id="mainCoin" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="coin-image" alt="RET" />
-      </div>
-
-      <!-- Reward -->
-      <div style="margin-top:24px;text-align:center;position:relative;z-index:2">
-        <div class="font-mono" style="font-size:11px;letter-spacing:0.18em;color:rgba(255,255,255,0.4);margin-bottom:6px">UNCLAIMED REWARD</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-          <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:28px;height:28px;object-fit:contain" />
-          <span id="unclaimed" style="font-size:34px;font-weight:900">0.00000</span>
-          <span style="font-size:14px;color:rgba(255,255,255,0.4)">RET</span>
-        </div>
-        <div class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:6px;display:flex;justify-content:center;gap:16px">
-          <span>≈ $<span id="usdVal">0.00</span></span>
-          <span id="timer">00:00:00</span>
-        </div>
-        <button id="claimBtn" class="btn-primary" style="margin-top:20px" disabled>CONNECT WALLET</button>
-        <p class="font-mono" style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.3)">Mining starts after wallet connection</p>
-      </div>
-    </div>
-
-    <!-- Current Miner Card -->
-    <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
-      <div style="display:flex;gap:12px;align-items:center">
-        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,rgba(139,92,246,0.2),rgba(6,255,165,0.2));display:flex;align-items:center;justify-content:center">
-          <svg class="icon-lg" style="color:#8B5CF6" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        </div>
-        <div>
-          <div class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4)">CURRENT MINER</div>
-          <div style="font-size:16px;font-weight:800">Level <span id="minerLvl">1</span></div>
-        </div>
-      </div>
-      <button onclick="switchTab('miners')" style="width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,0.08);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center">
-        <svg style="width:18px;height:18px;fill:#fff" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-      </button>
-    </div>
-  </main>
-
-  <!-- ========== TAB: TASKS ========== -->
-  <main id="tab-tasks" class="tab-section" style="padding:16px;padding-bottom:100px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <h2 style="font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px">
-        <svg class="icon" style="color:#FF6B35" viewBox="0 0 24 24"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>
-        Daily Tasks
-      </h2>
-      <span class="font-mono" style="font-size:11px;background:#1C1E32;padding:4px 10px;border-radius:999px">Today: <span id="adsToday">0</span></span>
-    </div>
-
-    <div id="tasksList" style="display:flex;flex-direction:column;gap:10px"></div>
-
-    <h2 style="font-size:18px;font-weight:900;margin-top:24px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <svg class="icon" style="color:#06FFA5" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      Daily Streak
-    </h2>
-    <div id="streakGrid" class="streak-grid"></div>
-  </main>
-
-  <!-- ========== TAB: MINERS ========== -->
-  <main id="tab-miners" class="tab-section" style="padding:16px;padding-bottom:100px">
-    <h2 style="font-size:18px;font-weight:900;margin-bottom:14px">Miners</h2>
-
-    <div class="card">
-      <div style="display:flex;justify-content:space-between">
-        <span class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4)">LEVEL PROGRESS</span>
-        <span style="font-size:12px;font-weight:800"><span id="lvlFrom">1</span> → <span id="lvlTo">2</span></span>
-      </div>
-      <div style="height:8px;background:rgba(0,0,0,0.3);border-radius:999px;margin-top:10px;overflow:hidden">
-        <div id="lvlProgress" style="height:100%;background:linear-gradient(90deg,#8B5CF6,#06FFA5);width:0%;border-radius:999px;transition:width 0.3s"></div>
-      </div>
-      <div class="font-mono" style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,0.4);margin-top:6px">
-        <span id="lvlNeed">0 / 25 RET</span>
-        <span id="lvlRemain">25 RET to next level</span>
-      </div>
-    </div>
-
-    <div id="minersList" style="margin-top:12px;display:flex;flex-direction:column;gap:8px"></div>
-  </main>
-
-  <!-- ========== TAB: FRIENDS ========== -->
-  <main id="tab-friends" class="tab-section" style="padding:16px;padding-bottom:100px">
-    <h2 style="font-size:18px;font-weight:900;margin-bottom:14px">Friends</h2>
-
-    <div class="card" style="background:linear-gradient(135deg,#1A1033,#151729);border:1px solid rgba(139,92,246,0.3)">
-      <h3 style="font-size:18px;font-weight:900">Invite Squad</h3>
-      <p style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px">Earn 10% mining bonus per friend</p>
-      <div style="display:flex;gap:8px;margin-top:16px">
-        <div style="flex:1;height:44px;border-radius:12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;padding:0 12px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" class="font-mono" id="refLink">Loading...</div>
-        <button onclick="copyRef()" style="height:44px;width:44px;border-radius:12px;background:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center">
-          <svg style="width:18px;height:18px;fill:#000" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- ========== TAB: WALLET ========== -->
-  <main id="tab-wallet" class="tab-section" style="padding:16px;padding-bottom:100px">
-    <h2 style="font-size:18px;font-weight:900;margin-bottom:14px">Wallet</h2>
-
-    <div class="card" style="border-radius:24px;padding:20px">
-      <div class="font-mono" style="font-size:11px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);margin-bottom:12px">BALANCE</div>
-      <div style="display:flex;gap:12px;align-items:center">
-        <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:44px;height:44px;object-fit:contain" />
-        <div>
-          <div style="font-size:28px;font-weight:900"><span id="walletBal">0.00000</span> <span style="font-size:16px;color:rgba(255,255,255,0.4)">RET</span></div>
-          <div class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.4)">LVL <span id="walletLvl">1</span> • $<span id="walletUsd">0.00</span></div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px">
-        <button onclick="openWithdraw()" style="height:44px;border-radius:12px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer">Withdraw</button>
-        <button onclick="showToast('Swap coming soon')" style="height:44px;border-radius:12px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.1);color:#fff;font-weight:800;cursor:pointer">Swap</button>
-      </div>
-    </div>
-
-    <!-- TON Wallet Card -->
-    <div class="card" style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:12px">
-      <div style="display:flex;gap:12px;align-items:center;flex:1;min-width:0">
-        <div style="width:40px;height:40px;border-radius:12px;background:#0098EA;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0">TON</div>
-        <div style="min-width:0">
-          <div style="font-size:14px;font-weight:800">TON Wallet</div>
-          <div class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="tonStatus">Not connected</div>
-        </div>
-      </div>
-      <button id="tonWalletBtn" onclick="openTonConnect()" style="height:36px;padding:0 16px;border-radius:999px;background:#fff;color:#000;font-weight:800;border:none;cursor:pointer;font-size:12px;flex-shrink:0">Connect</button>
-    </div>
-  </main>
-
-  <!-- Bottom Nav -->
-  <div class="bottom-nav">
-    <div class="bottom-nav-inner">
-      <button class="nav-btn active" data-tab="mine" onclick="switchTab('mine')">
-        <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-        <span>Mine</span>
-      </button>
-      <button class="nav-btn" data-tab="tasks" onclick="switchTab('tasks')">
-        <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-        <span>Tasks</span>
-      </button>
-      <button class="nav-btn" data-tab="miners" onclick="switchTab('miners')">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-        <span>Miners</span>
-      </button>
-      <button class="nav-btn" data-tab="friends" onclick="switchTab('friends')">
-        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        <span>Friends</span>
-      </button>
-      <button class="nav-btn" data-tab="wallet" onclick="switchTab('wallet')">
-        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-        <span>Wallet</span>
-      </button>
+      <div class="stat-val font-mono"><span id="holdInApp">0.0</span> RET</div>
     </div>
   </div>
 </div>
 
-<!-- Withdraw Modal -->
+<!-- ==================== TAB: TASKS ==================== -->
+<div id="tab-tasks" class="tab-section">
+  <div class="section-title">DAILY CHECK-IN</div>
+  <div class="card">
+    <div class="daily-checkin" id="dailyCheckinGrid"></div>
+    <button id="checkinBtn" class="btn-primary" onclick="claimDailyCheckin()" style="height: 48px;">Claim Daily Reward</button>
+  </div>
+
+  <div class="section-title">TASKS</div>
+  <div id="tasksList"></div>
+</div>
+
+<!-- ==================== TAB: MINERS ==================== -->
+<div id="tab-miners" class="tab-section">
+  <div class="card">
+    <div class="miner-stats-header">
+      <div class="miner-stat-box">
+        <div class="miner-stat-val" id="lvlCurrent">1</div>
+        <div class="miner-stat-label">Level</div>
+      </div>
+      <div class="miner-stat-box">
+        <div class="miner-stat-val" id="lvlPeak">1</div>
+        <div class="miner-stat-label">Peak</div>
+      </div>
+      <div class="miner-stat-box">
+        <div class="miner-stat-val green" id="todayPnL">+0.0</div>
+        <div class="miner-stat-label">Today's P&L</div>
+      </div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+      <span>Level <span id="nextLvlText">2</span></span>
+      <span style="color: var(--text-sub);" id="lvlNeedText">25 RET to go</span>
+    </div>
+    <div class="level-progress-bar">
+      <div class="level-progress-fill" id="lvlProgressFill" style="width: 0%;"></div>
+    </div>
+    <p style="font-size: 12px; color: var(--text-sub); margin-top: 12px; line-height: 1.4; text-align: center;">
+      Mine more RET to unlock faster miners. Nothing is spent — your level follows what you hold.
+    </p>
+  </div>
+
+  <div class="section-title">LEVELS (Up to 1,000)</div>
+  <div id="levelsList"></div>
+</div>
+
+<!-- ==================== TAB: FRIENDS ==================== -->
+<div id="tab-friends" class="tab-section">
+  <div class="profile-card">
+    <img id="profileAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="profile-avatar" />
+    <div class="profile-info">
+      <h2 id="profileName">User</h2>
+      <p id="profileHandle">@username</p>
+      <div class="profile-badges">
+        <div class="p-badge"><svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg> Non-NFT Holder</div>
+        <div class="p-badge red"><svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg> Non-Verified</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card invite-card">
+    <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="invite-heart" style="border-radius: 50%;" />
+    <h2>Invite Friends</h2>
+    <p>Get <b>+100 RET</b> for every friend who starts mining, plus <b>10%</b> of their mining output — forever.</p>
+    <div class="invite-btns">
+      <button class="invite-btn copy" onclick="copyRefLink()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg> Copy
+      </button>
+      <button class="invite-btn share" onclick="shareRefLink()">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Share
+      </button>
+    </div>
+    <div style="margin-top: 16px; font-size: 12px; color: var(--text-sub); word-break: break-all;" id="refLinkDisplay">
+      Loading...
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 16px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <span style="font-size: 14px; font-weight: 600; color: var(--text-sub);">SQUAD MINING</span>
+      <span style="background: #E8F8EC; color: var(--green); padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 700;">10%</span>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div>
+        <div style="font-size: 13px; color: var(--text-sub);">Squad Commission Pool</div>
+        <div style="font-size: 28px; font-weight: 800;" class="font-mono"><span id="squadPool">0.000</span> <span style="font-size: 14px; color: var(--text-sub);">RET</span></div>
+      </div>
+      <div style="color: var(--green); font-weight: 700; font-size: 14px;">≈ $<span id="squadPoolUsd">0.00</span></div>
+    </div>
+    <button class="btn-primary" style="height: 40px; margin-top: 16px; font-size: 14px; background: #F4F5F7; color: var(--text-sub);" disabled>Nothing to claim yet</button>
+  </div>
+
+  <div class="section-title">INVITE BONUS</div>
+  <div class="squad-stats">
+    <div class="squad-box">
+      <h3 style="color: var(--green);" id="squadQualified">0</h3>
+      <p>Qualified</p>
+    </div>
+    <div class="squad-box">
+      <h3 id="squadTotal">0</h3>
+      <p>Total Squad</p>
+    </div>
+    <div class="squad-box">
+      <h3 style="color: #FF9500;" id="squadUnclaimed">0</h3>
+      <p>Unclaimed</p>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== TAB: WALLET ==================== -->
+<div id="tab-wallet" class="tab-section">
+  <div class="card wallet-card">
+    <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="wallet-icon" style="border-radius: 50%;" />
+    <div style="font-size: 14px; color: var(--text-sub); font-weight: 500;">In-App Wallet Balance</div>
+    <div class="wallet-bal font-mono"><span id="walletBalance">0.0</span> <span>RET</span></div>
+    <div class="wallet-usd">≈ $<span id="walletUsd">0.00</span></div>
+    <div class="wallet-btns">
+      <button class="wallet-btn withdraw" onclick="openWithdraw()">Withdraw</button>
+      <button class="wallet-btn buy">Buy RET</button>
+    </div>
+  </div>
+
+  <div class="section-title">GRAM WALLET</div>
+  <div class="card">
+    <div class="ton-card" id="tonWalletSection"></div>
+  </div>
+
+  <!-- Live Payouts from DB -->
+  <div class="section-title">PAYOUTS <span style="color: var(--green); margin-left: 6px;">● Live</span></div>
+  <div class="card" style="padding: 0 16px;" id="payoutsList">
+    <div style="text-align: center; padding: 20px; color: var(--text-sub);">Loading payouts...</div>
+  </div>
+
+  <div class="section-title">APP HISTORY</div>
+  <div class="card" style="padding: 0 16px;" id="historyList">
+    <div style="text-align: center; padding: 20px; color: var(--text-sub);">No history yet.</div>
+  </div>
+</div>
+
+<!-- ==================== BOTTOM NAV ==================== -->
+<div class="bottom-nav">
+  <button class="float-mine-btn" onclick="switchTab('mine')">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    <span>Mine</span>
+  </button>
+  <div class="nav-pill">
+    <button class="nav-btn" data-tab="tasks" onclick="switchTab('tasks')">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+      Tasks
+    </button>
+    <button class="nav-btn" data-tab="miners" onclick="switchTab('miners')">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      Miners
+    </button>
+    <button class="nav-btn" data-tab="friends" onclick="switchTab('friends')">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      Friends
+    </button>
+    <button class="nav-btn" data-tab="wallet" onclick="switchTab('wallet')">
+      <svg class="icon" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      Wallet
+    </button>
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
 <div id="withdrawModal" class="modal">
   <div class="modal-box">
-    <h3 style="font-size:18px;font-weight:800">Withdraw RET</h3>
-    <p class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px">Minimum: <span id="wdMin">500</span> RET</p>
-    <p class="font-mono" style="font-size:11px;color:#0098EA;margin-top:4px">To: <span id="wdAddr">...</span></p>
-    <input id="wdAmount" class="input-field" placeholder="Amount" style="margin-top:12px" type="number" inputmode="decimal" />
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button onclick="closeWithdraw()" style="flex:1;height:44px;border-radius:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-weight:700;cursor:pointer">Cancel</button>
-      <button onclick="confirmWithdraw()" style="flex:1;height:44px;border-radius:12px;background:linear-gradient(135deg,#8B5CF6,#6D28D9);border:none;color:#fff;font-weight:800;cursor:pointer">Confirm</button>
+    <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Withdraw RET</h3>
+    <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 16px;">Min: <span id="wdMin">500</span> RET</p>
+    <input id="wdAmount" type="number" placeholder="Amount" style="width: 100%; height: 50px; border-radius: 12px; border: 1px solid var(--border); padding: 0 16px; font-size: 16px; outline: none; margin-bottom: 16px; font-family: inherit;" />
+    <div style="display: flex; gap: 10px;">
+      <button onclick="closeWithdraw()" style="flex: 1; height: 48px; border-radius: 12px; border: none; background: var(--bg-color); font-weight: 700; cursor: pointer;">Cancel</button>
+      <button onclick="confirmWithdraw()" style="flex: 1; height: 48px; border-radius: 12px; border: none; background: var(--primary); color: #fff; font-weight: 700; cursor: pointer;">Confirm</button>
     </div>
   </div>
 </div>
@@ -589,28 +613,31 @@
 <!-- Ad Modal -->
 <div id="adModal" class="modal">
   <div class="modal-box">
-    <h3 style="font-size:18px;font-weight:800">Watching Ad...</h3>
-    <p class="font-mono" style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:6px" id="adModalDesc">Reward after complete</p>
-    <div style="margin-top:16px;height:160px;background:#0A0B14;border:1px solid rgba(255,255,255,0.08);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center">
-      <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:#8B5CF6;border-radius:999px;animation:spin 1s linear infinite"></div>
-      <div class="font-mono" style="margin-top:12px;font-size:12px"><span id="adCountdown">5</span>s remaining</div>
-      <div style="width:80%;height:4px;background:rgba(255,255,255,0.1);border-radius:999px;margin-top:12px;overflow:hidden">
-        <div id="adProgress" style="height:100%;background:#8B5CF6;width:0%;transition:width 0.2s;border-radius:999px"></div>
-      </div>
-    </div>
+    <div class="ad-loading-circle"></div>
+    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Processing Ad...</h3>
+    <p style="font-size: 14px; color: var(--text-sub);">Please wait <span id="adCountdown">10</span>s to claim reward.</p>
   </div>
 </div>
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
 
+<div id="toast" class="toast">Message</div>
+
+<!-- ==================== JAVASCRIPT ==================== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, update, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
+// --- 1. SECURITY CHECK (Telegram Only) ---
+const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+
+if (!isTelegram && !isLocal) {
+  document.getElementById('securityBlock').style.display = 'flex';
+  document.getElementById('loading').style.display = 'none';
+  throw new Error("Unauthorized Access. Please open in Telegram.");
+}
+
+// --- FIREBASE CONFIG ---
 const firebaseConfig = {
   apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
   authDomain: "ret-coin-mine.firebaseapp.com",
@@ -620,695 +647,576 @@ const firebaseConfig = {
   messagingSenderId: "417445689965",
   appId: "1:417445689965:web:023edebe16193cc1e11d64"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// ============ GLOBAL STATE ============
+// --- GLOBAL STATE ---
 let uid = null;
+let user = {};
 let config = {
-  miningRate: 0.000011,
-  claimInterval: 75600,
-  usdRate: 0.042,
-  levelBase: 25,
-  withdrawMin: 500,
-  coinLogo: 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png',
-  claimAdZoneId: '',
-  ads: [],
+  levelBase: 25, miningRate: 0.000011, usdRate: 0.042, withdrawMin: 500,
+  botLink: "https://t.me/ret_mine_bot",
   tasks: []
 };
-
-let userData = {
-  balance: 0,
-  unclaimed: 0,
-  miningStart: Date.now(),
-  level: 1,
-  hashRate: '0.00',
-  adsToday: 0,
-  streak: [],
-  totalMined: 0,
-  tonConnected: false,
-  tonAddress: '',
-  username: 'RET Miner',
-  handle: 'ret_miner',
-  photo: ''
-};
-
 let tonConnectUI = null;
-let lastSync = 0;
-let localUnclaimed = 0; // local accumulated
+let localUnclaimed = 0;
 let syncTimer = null;
+let referralParam = null;
 
-// ============ HELPERS ============
-function calcLevel(balance) {
-  const base = config.levelBase || 25;
-  return Math.max(1, Math.floor(balance / base) + 1);
-}
-function calcHash(level) {
-  return (0.5 + level * 0.03).toFixed(2);
-}
-function formatTime(sec) {
-  if (sec < 0) sec = 0;
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = Math.floor(sec % 60);
-  return [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
-}
-function getClaimRemaining() {
-  const ci = config.claimInterval || 75600;
-  const elapsed = Math.floor((Date.now() - (userData.miningStart || Date.now())) / 1000);
-  return Math.max(0, ci - elapsed);
-}
-function showToast(msg) {
-  const existing = document.querySelector('.toast');
-  if (existing) existing.remove();
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => {
-    t.style.opacity = '0';
-    t.style.transition = 'opacity 0.3s';
-    setTimeout(() => t.remove(), 300);
-  }, 2200);
-}
+// --- HELPERS ---
+const $ = id => document.getElementById(id);
+const showToast = (msg) => {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+};
+const calcLevel = (bal) => Math.max(1, Math.floor(bal / (config.levelBase || 25)) + 1);
+const calcSpeed = (lvl) => (0.5 + lvl * 0.03).toFixed(2);
+const calcDaily = (spd) => (spd * (config.miningRate || 0.000011) * 86400).toFixed(2);
 
-// ============ TELEGRAM USER ============
+// --- TELEGRAM INIT ---
 function getTelegramUser() {
-  try {
-    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-      const u = Telegram.WebApp.initDataUnsafe.user;
-      return {
-        name: ((u.first_name || '') + ' ' + (u.last_name || '')).trim() || 'RET Miner',
-        username: u.username || 'ret_miner',
-        photo: u.photo_url || ''
-      };
-    }
-  } catch (e) { console.warn('Telegram not available'); }
-  return null;
+  if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
+    const u = Telegram.WebApp.initDataUnsafe.user;
+    return {
+      name: (u.first_name + ' ' + (u.last_name || '')).trim(),
+      username: u.username || 'user',
+      photo: u.photo_url || ''
+    };
+  }
+  return { name: 'Test User', username: 'testuser', photo: '' };
+}
+if (window.Telegram?.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+  const startParam = Telegram.WebApp.initDataUnsafe?.start_param;
+  if (startParam && startParam.startsWith('ref_')) {
+    referralParam = startParam.replace('ref_', '');
+  }
 }
 
-// ============ TON CONNECT ============
+// --- TON CONNECT INIT ---
 function initTonConnect() {
-  // Manifest URL on GitHub Pages
   const manifestUrl = 'https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json';
-
-  try {
-    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: manifestUrl
-    });
-
-    tonConnectUI.onStatusChange(async (wallet) => {
-      if (wallet && wallet.account?.address) {
-        const address = wallet.account.address;
-        if (!uid) return;
-
-        const lvl = calcLevel(userData.balance);
-        const hr = calcHash(lvl);
-
-        // Reset mining start if first connect
-        const wasConnected = userData.tonConnected;
-        const newMiningStart = wasConnected ? (userData.miningStart || Date.now()) : Date.now();
-
-        await update(ref(db, 'users/' + uid), {
-          tonConnected: true,
-          tonAddress: address,
-          miningStart: newMiningStart,
-          level: lvl,
-          hashRate: hr
-        });
-
-        showToast('TON Connected');
-      } else {
-        if (!uid) return;
-        await update(ref(db, 'users/' + uid), {
-          tonConnected: false,
-          tonAddress: '',
-          hashRate: '0.00'
-        });
-      }
-    });
-
-    // Check if already connected
-    if (tonConnectUI.connected && tonConnectUI.wallet) {
-      // Status already set
+  if (typeof TON_CONNECT_UI === 'undefined') return;
+  
+  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl });
+  
+  tonConnectUI.onStatusChange(async (wallet) => {
+    if (!uid) return;
+    if (wallet && wallet.account?.address) {
+      await update(ref(db, 'users/' + uid), {
+        tonConnected: true,
+        tonAddress: wallet.account.address
+      });
+      showToast('TON Wallet Connected');
+    } else {
+      await update(ref(db, 'users/' + uid), {
+        tonConnected: false,
+        tonAddress: ''
+      });
     }
-  } catch (e) {
-    console.error('TON Connect init error:', e);
-  }
+    renderWalletTab();
+  });
 }
-
 window.openTonConnect = async () => {
-  if (!tonConnectUI) {
-    showToast('TON Connect not loaded');
-    return;
-  }
-  try {
-    await tonConnectUI.openModal();
-  } catch (e) {
-    console.error('TON Connect modal error:', e);
-    showToast('Connection failed, try again');
+  if (tonConnectUI) await tonConnectUI.openModal();
+};
+window.disconnectTon = async () => {
+  if (tonConnectUI) {
+    await tonConnectUI.disconnect();
+    showToast('TON Wallet Disconnected');
   }
 };
 
-// ============ INIT ============
+// --- MAIN INIT ---
 async function init() {
-  if (window.Telegram?.WebApp) {
-    try {
-      Telegram.WebApp.ready();
-      Telegram.WebApp.expand();
-      Telegram.WebApp.setHeaderColor('#0A0B14');
-    } catch (e) {}
-  }
-
-  // Load config
   onValue(ref(db, 'config'), (snap) => {
     if (snap.exists()) {
       config = { ...config, ...snap.val() };
-      if (!config.ads) config.ads = [];
-      if (!config.tasks) config.tasks = [];
-      // Update coin images
-      document.querySelectorAll('img[src*="RET-256x256"]').forEach(img => {
-        if (config.coinLogo) img.src = config.coinLogo;
-      });
       renderTasks();
-      renderStreak();
-      updateUI();
     }
   });
 
-  // Auth
   try {
     await signInAnonymously(auth);
   } catch (e) {
-    console.error('Auth error:', e);
-    showToast('Auth failed');
+    showToast('Auth Error: Enable Anonymous Login');
+    $('loading').style.display = 'none';
+    return;
   }
 
   onAuthStateChanged(auth, async (u) => {
     if (!u) return;
     uid = u.uid;
-
+    
     const userRef = ref(db, 'users/' + uid);
-    onValue(userRef, (snap) => {
+    onValue(userRef, async (snap) => {
       if (snap.exists()) {
-        const data = snap.val();
-        userData = { ...userData, ...data };
-        // recalc level
-        userData.level = calcLevel(userData.balance || 0);
-        if (userData.tonConnected) {
-          userData.hashRate = calcHash(userData.level);
-        } else {
-          userData.hashRate = '0.00';
-        }
-        localUnclaimed = userData.unclaimed || 0;
+        user = snap.val();
+        localUnclaimed = user.unclaimed || 0;
       } else {
-        // Create new user
         const tg = getTelegramUser();
-        const newUser = {
-          balance: 0,
-          unclaimed: 0,
-          miningStart: Date.now(),
-          level: 1,
-          hashRate: '0.00',
-          adsToday: 0,
-          streak: [],
-          totalMined: 0,
-          tonConnected: false,
-          tonAddress: '',
-          username: tg?.name || 'RET Miner',
-          handle: tg?.username || 'ret_miner',
-          photo: tg?.photo || '',
+        user = {
+          balance: 0, unclaimed: 0, miningStart: Date.now(), level: 1,
+          totalMined: 0, adsToday: 0, streak: 0, lastCheckIn: 0,
+          tonConnected: false, tonAddress: '',
+          username: tg.name, handle: tg.username, photo: tg.photo,
+          referredBy: referralParam || null,
           createdAt: Date.now()
         };
-        set(userRef, newUser);
-        userData = newUser;
-        localUnclaimed = 0;
+        await set(userRef, user);
+        
+        if (referralParam && referralParam !== uid) {
+           const refSnap = await get(ref(db, 'users/' + referralParam));
+           if (refSnap.exists()) {
+              const refUser = refSnap.val();
+              await update(ref(db, 'users/' + referralParam), {
+                 balance: (refUser.balance || 0) + 100
+              });
+           }
+        }
       }
-      updateUI();
+      
+      updateGlobalUI();
+      renderMineTab();
+      renderMinersTab();
+      renderFriendsTab();
+      renderWalletTab();
+      renderPayouts(); // Fetch real payouts
     });
-
-    // Show app
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-
-    // Init TON Connect
-    initTonConnect();
-
-    // Update ref link
-    const tgUser = getTelegramUser();
-    if (tgUser?.username) {
-      // Try to build ref link
-      document.getElementById('refLink').textContent = 'https://t.me/ret_mine_bot?start=ref_' + uid.slice(0, 8);
-    } else {
-      document.getElementById('refLink').textContent = 'Share your link';
-    }
+    
+    $('loading').style.display = 'none';
+    $('header').style.display = 'flex';
+    switchTab('mine');
+    
+    if (!tonConnectUI) initTonConnect();
   });
 }
 
-// ============ UI UPDATE ============
-function updateUI() {
-  const balance = userData.balance || 0;
-  const unclaimed = localUnclaimed || 0;
-
-  // Header
-  document.getElementById('topBalance').textContent = balance.toFixed(3);
-  document.getElementById('lvlBadge').textContent = 'LVL ' + userData.level;
-
-  // Mining
-  document.getElementById('unclaimed').textContent = unclaimed.toFixed(5);
-  document.getElementById('hashRate').textContent = userData.hashRate + ' TH/s';
-  document.getElementById('coreStatus').textContent = userData.tonConnected ? 'ACTIVE' : 'PAUSED';
-  document.getElementById('minerLvl').textContent = userData.level;
-
-  // Overlay
-  document.getElementById('connectOverlay').style.display = userData.tonConnected ? 'none' : 'flex';
-
-  // USD
-  document.getElementById('usdVal').textContent = (unclaimed * (config.usdRate || 0.042)).toFixed(2);
-
-  // Wallet tab
-  document.getElementById('walletBal').textContent = balance.toFixed(5);
-  document.getElementById('walletLvl').textContent = userData.level;
-  document.getElementById('walletUsd').textContent = (balance * (config.usdRate || 0.042)).toFixed(2);
-
-  // TON status
-  const tonStatus = document.getElementById('tonStatus');
-  const tonBtn = document.getElementById('tonWalletBtn');
-  if (userData.tonConnected && userData.tonAddress) {
-    tonStatus.textContent = userData.tonAddress.slice(0, 6) + '...' + userData.tonAddress.slice(-4);
-    tonBtn.textContent = 'Connected';
-    tonBtn.disabled = true;
-    tonBtn.style.opacity = '0.6';
-  } else {
-    tonStatus.textContent = 'Not connected';
-    tonBtn.textContent = 'Connect';
-    tonBtn.disabled = false;
-    tonBtn.style.opacity = '1';
-  }
-
-  // User photo/name
-  const photo = userData.photo || getTelegramUser()?.photo;
-  if (photo) document.getElementById('userPhoto').src = photo;
-  document.getElementById('userName').textContent = userData.username || 'RET Miner';
-  document.getElementById('userHandle').textContent = '@' + (userData.handle || 'ret_miner');
-
-  // Level progress
-  const base = config.levelBase || 25;
-  const prog = balance % base;
-  document.getElementById('lvlProgress').style.width = (prog / base * 100) + '%';
-  document.getElementById('lvlNeed').textContent = prog.toFixed(2) + ' / ' + base + ' RET';
-  document.getElementById('lvlRemain').textContent = (base - prog).toFixed(2) + ' RET to next';
-  document.getElementById('lvlFrom').textContent = userData.level;
-  document.getElementById('lvlTo').textContent = userData.level + 1;
-
-  // Ads today
-  document.getElementById('adsToday').textContent = userData.adsToday || 0;
-
-  // Progress ring
-  const ci = config.claimInterval || 75600;
-  const elapsed = Math.floor((Date.now() - (userData.miningStart || Date.now())) / 1000);
-  const pct = Math.min(1, elapsed / ci);
-  document.getElementById('mineProgress').style.strokeDashoffset = 628 - (pct * 628);
-
-  // Withdraw min
-  document.getElementById('wdMin').textContent = config.withdrawMin || 500;
-  document.getElementById('wdAddr').textContent = userData.tonAddress
-    ? userData.tonAddress.slice(0, 10) + '...' + userData.tonAddress.slice(-6)
-    : 'Not connected';
-
-  // Claim button
-  updateClaimButton();
-
-  renderMiners();
-}
-
-function updateClaimButton() {
-  const btn = document.getElementById('claimBtn');
-  if (!userData.tonConnected) {
-    btn.disabled = true;
-    btn.textContent = 'CONNECT WALLET';
-    return;
-  }
-  const remaining = getClaimRemaining();
-  const unclaimed = localUnclaimed || 0;
-  if (remaining > 0) {
-    btn.disabled = true;
-    btn.textContent = 'CLAIM IN ' + formatTime(remaining);
-  } else if (unclaimed > 0.00001) {
-    btn.disabled = false;
-    btn.textContent = 'CLAIM ' + unclaimed.toFixed(5) + ' RET';
-  } else {
-    btn.disabled = true;
-    btn.textContent = 'MINING...';
+// --- GLOBAL UI UPDATE ---
+function updateGlobalUI() {
+  const tg = getTelegramUser();
+  $('userAvatar').src = user.photo || tg.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
+  $('headerBalance').textContent = (user.balance || 0).toFixed(1);
+  $('headerLevel').textContent = calcLevel(user.balance || 0);
+  
+  if ($('tab-mine').classList.contains('active')) {
+    renderMineTab();
   }
 }
 
-// ============ TASKS ============
-function renderTasks() {
-  const list = document.getElementById('tasksList');
-  if (!list) return;
-  list.innerHTML = '';
-
-  const allTasks = [...(config.ads || []), ...(config.tasks || [])];
-
-  if (allTasks.length === 0) {
-    list.innerHTML = '<div class="font-mono" style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;padding:20px">No tasks available</div>';
-    return;
-  }
-
-  allTasks.forEach(task => {
-    const isLegal = task.type === 'legal_task';
-    const item = document.createElement('div');
-    item.className = 'task-item';
-    item.innerHTML =
-      '<div style="display:flex;gap:12px;align-items:center;min-width:0;flex:1">' +
-        '<div class="task-icon" style="background:' + (isLegal ? 'linear-gradient(135deg,rgba(6,255,165,0.2),rgba(139,92,246,0.2))' : 'linear-gradient(135deg,rgba(139,92,246,0.2),rgba(6,255,165,0.15))') + ';color:' + (isLegal ? '#06FFA5' : '#8B5CF6') + '">' +
-          (isLegal
-            ? '<svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>'
-            : '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>') +
-        '</div>' +
-        '<div style="min-width:0;flex:1">' +
-          '<div style="font-size:13px;font-weight:700;display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
-            (task.title || 'Task') +
-            '<span style="font-size:10px;padding:2px 6px;border-radius:6px;background:rgba(6,255,165,0.15);color:#06FFA5">+' + (task.reward || 0) + ' RET</span>' +
-          '</div>' +
-          '<div class="font-mono" style="font-size:10px;color:rgba(255,255,255,0.4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (task.desc || '') + '</div>' +
-        '</div>' +
-      '</div>' +
-      '<button class="task-btn">' + (isLegal ? 'Open' : 'Watch') + '</button>';
-
-    item.querySelector('button').onclick = () => {
-      if (isLegal) {
-        handleLegalTask(task);
-      } else {
-        handleAdTask(task);
-      }
-    };
-
-    list.appendChild(item);
-  });
-}
-
-async function handleLegalTask(task) {
-  if (!task.link) {
-    showToast('No link set');
-    return;
-  }
-  // Open link
-  try {
-    if (window.Telegram?.WebApp?.openLink) {
-      Telegram.WebApp.openLink(task.link);
-    } else {
-      window.open(task.link, '_blank');
-    }
-  } catch (e) {
-    window.open(task.link, '_blank');
-  }
-
-  // Give reward after delay (in real app, should verify)
-  setTimeout(async () => {
-    if (!uid) return;
-    const reward = task.reward || 10;
-    const nb = (userData.balance || 0) + reward;
-    const nl = calcLevel(nb);
-    await update(ref(db, 'users/' + uid), {
-      balance: nb,
-      level: nl,
-      hashRate: userData.tonConnected ? calcHash(nl) : '0.00',
-      totalMined: (userData.totalMined || 0) + reward
-    });
-    showToast('+' + reward + ' RET');
-  }, 1500);
-}
-
-async function handleAdTask(task) {
-  if (!userData.tonConnected) {
-    showToast('Connect wallet first');
-    return;
-  }
-
-  const zoneId = task.zoneId || config.claimAdZoneId;
-  if (!zoneId) {
-    showToast('No ad zone configured');
-    return;
-  }
-
-  // Show ad modal with countdown
-  const adModal = document.getElementById('adModal');
-  const countdownEl = document.getElementById('adCountdown');
-  const progressEl = document.getElementById('adProgress');
-  document.getElementById('adModalDesc').textContent = 'Reward: +' + (task.reward || 15) + ' RET';
-  adModal.classList.add('show');
-
-  let count = 5;
-  countdownEl.textContent = count;
-  progressEl.style.width = '0%';
-
-  const interval = setInterval(() => {
-    count--;
-    countdownEl.textContent = count;
-    progressEl.style.width = ((5 - count) * 20) + '%';
-    if (count <= 0) {
-      clearInterval(interval);
-      adModal.classList.remove('show');
-      // Give reward
-      if (!uid) return;
-      const reward = task.reward || 15;
-      const nb = (userData.balance || 0) + reward;
-      const nl = calcLevel(nb);
-      update(ref(db, 'users/' + uid), {
-        balance: nb,
-        level: nl,
-        hashRate: userData.tonConnected ? calcHash(nl) : '0.00',
-        adsToday: (userData.adsToday || 0) + 1,
-        totalMined: (userData.totalMined || 0) + reward
-      });
-      showToast('+' + reward + ' RET');
-    }
-  }, 1000);
-
-  // Try Monetag SDK if available
-  try {
-    if (typeof window['show_' + zoneId] === 'function') {
-      window['show_' + zoneId]();
-    }
-  } catch (e) {}
-}
-
-// ============ STREAK ============
-function renderStreak() {
-  const grid = document.getElementById('streakGrid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  const streak = userData.streak || [];
-  for (let i = 1; i <= 7; i++) {
-    const claimed = streak.includes(i);
-    const btn = document.createElement('button');
-    btn.className = 'streak-item' + (claimed ? ' claimed' : '');
-    btn.innerHTML =
-      '<span class="font-mono" style="font-size:9px;color:rgba(255,255,255,0.4)">D' + i + '</span>' +
-      '<img src="' + (config.coinLogo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png') + '" style="width:16px;height:16px;object-fit:contain" />' +
-      '<span style="font-size:10px;font-weight:800">+' + (i * 3 + 5) + '</span>';
-    btn.onclick = () => claimStreak(i);
-    grid.appendChild(btn);
-  }
-}
-
-async function claimStreak(day) {
-  if (!uid) return;
-  if ((userData.streak || []).includes(day)) {
-    showToast('Already claimed');
-    return;
-  }
-  const reward = day * 3 + 5;
-  const nb = (userData.balance || 0) + reward;
-  const nl = calcLevel(nb);
-  await update(ref(db, 'users/' + uid), {
-    balance: nb,
-    level: nl,
-    hashRate: userData.tonConnected ? calcHash(nl) : '0.00',
-    streak: [...(userData.streak || []), day],
-    totalMined: (userData.totalMined || 0) + reward
-  });
-  showToast('Day ' + day + ': +' + reward + ' RET');
-}
-
-// ============ MINERS ============
-function renderMiners() {
-  const list = document.getElementById('minersList');
-  if (!list) return;
-  list.innerHTML = '';
-
-  const maxShow = Math.max(50, (userData.level || 1) + 30);
-  const base = config.levelBase || 25;
-
-  for (let i = 1; i <= maxShow; i++) {
-    const need = (i - 1) * base;
-    const unlocked = (userData.balance || 0) >= need;
-    const current = userData.level === i;
-
-    const item = document.createElement('div');
-    item.className = 'miner-item' + (current ? ' current' : '');
-    item.innerHTML =
-      '<div style="display:flex;gap:12px;align-items:center">' +
-        '<div class="miner-icon" style="background:' + (current ? '#8B5CF6' : unlocked ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.2)') + '">' +
-          '<svg style="width:18px;height:18px;fill:' + (current ? '#fff' : 'rgba(255,255,255,0.5)') + '" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>' +
-        '</div>' +
-        '<div>' +
-          '<div style="font-size:13px;font-weight:800">Miner Lvl ' + i + (current ? ' <span style="font-size:9px;padding:2px 6px;border-radius:999px;background:#06FFA5;color:#000">CURRENT</span>' : '') + '</div>' +
-          '<div class="font-mono" style="font-size:10px;color:rgba(255,255,255,0.4)">' + (0.5 + i * 0.03).toFixed(2) + ' TH/s • ' + need + ' RET</div>' +
-        '</div>' +
-      '</div>' +
-      '<div style="color:' + (unlocked ? '#06FFA5' : 'rgba(255,255,255,0.3)') + '">' +
-        (unlocked
-          ? '<svg style="width:18px;height:18px;fill:#06FFA5" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>'
-          : '<svg style="width:18px;height:18px;fill:rgba(255,255,255,0.3)" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"/></svg>') +
-      '</div>';
-    list.appendChild(item);
-  }
-}
-
-// ============ TABS ============
-window.switchTab = (tab) => {
+// --- TABS LOGIC ---
+window.switchTab = (tabId) => {
   document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
-  const target = document.getElementById('tab-' + tab);
-  if (target) target.classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.tab === tab);
-  });
+  $(`tab-${tabId}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  
+  if (tabId === 'miners') renderMinersTab();
+  if (tabId === 'friends') renderFriendsTab();
+  if (tabId === 'wallet') {
+    renderWalletTab();
+    renderHistory();
+  }
 };
 
-// ============ CLAIM ============
-document.getElementById('claimBtn').onclick = async () => {
-  if (!userData.tonConnected) {
-    showToast('Connect wallet first');
-    return;
-  }
-  const remaining = getClaimRemaining();
-  if (remaining > 0) {
-    showToast('Wait ' + formatTime(remaining));
-    return;
-  }
-  const amount = localUnclaimed || 0;
-  if (amount <= 0.00001) {
-    showToast('Nothing to claim yet');
-    return;
-  }
+// --- MINE TAB ---
+function renderMineTab() {
+  const lvl = calcLevel(user.balance || 0);
+  const spd = calcSpeed(lvl);
+  
+  $('mineLevel').textContent = lvl;
+  $('statLevel').textContent = lvl;
+  $('statSpeed').textContent = spd + ' TH/s';
+  $('mineHash').textContent = spd;
+  $('stat24h').textContent = '+' + calcDaily(spd) + ' RET';
+  $('holdInApp').textContent = (user.balance || 0).toFixed(1);
+  
+  updateMineProgress();
+}
 
-  const nb = (userData.balance || 0) + amount;
-  const nl = calcLevel(nb);
-  await update(ref(db, 'users/' + uid), {
-    balance: nb,
-    unclaimed: 0,
-    miningStart: Date.now(),
-    level: nl,
-    hashRate: calcHash(nl),
-    totalMined: (userData.totalMined || 0) + amount
-  });
-  localUnclaimed = 0;
-  showToast('Claimed ' + amount.toFixed(5) + ' RET');
-};
-
-// ============ WITHDRAW ============
-window.openWithdraw = () => {
-  if (!userData.tonConnected) {
-    showToast('Connect TON first');
-    return;
-  }
-  if ((userData.balance || 0) < (config.withdrawMin || 500)) {
-    showToast('Min ' + (config.withdrawMin || 500) + ' RET');
-    return;
-  }
-  document.getElementById('withdrawModal').classList.add('show');
-};
-window.closeWithdraw = () => document.getElementById('withdrawModal').classList.remove('show');
-window.confirmWithdraw = async () => {
-  const amount = parseFloat(document.getElementById('wdAmount').value);
-  if (isNaN(amount) || amount <= 0) {
-    showToast('Invalid amount');
-    return;
-  }
-  if (amount > (userData.balance || 0)) {
-    showToast('Insufficient balance');
-    return;
-  }
-  if (amount < (config.withdrawMin || 500)) {
-    showToast('Min ' + (config.withdrawMin || 500) + ' RET');
-    return;
-  }
-
-  const nb = userData.balance - amount;
-  const nl = calcLevel(nb);
-  await update(ref(db, 'users/' + uid), {
-    balance: nb,
-    level: nl,
-    hashRate: calcHash(nl)
-  });
-  await push(ref(db, 'withdrawals'), {
-    uid,
-    amount,
-    status: 'pending',
-    createdAt: Date.now(),
-    tonAddress: userData.tonAddress || ''
-  });
-  closeWithdraw();
-  showToast('Withdraw ' + amount + ' RET requested');
-};
-
-// ============ REFERRAL ============
-window.copyRef = () => {
-  const text = document.getElementById('refLink').textContent;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text);
-    showToast('Copied');
+function updateMineProgress() {
+  $('unclaimedAmount').textContent = localUnclaimed.toFixed(5);
+  $('unclaimedUsd').textContent = (localUnclaimed * (config.usdRate || 0.042)).toFixed(4);
+  
+  const claimInterval = 86400; // 24 hours
+  const elapsed = Math.floor((Date.now() - (user.miningStart || Date.now())) / 1000);
+  const remain = Math.max(0, claimInterval - elapsed);
+  
+  const h = Math.floor(remain / 3600).toString().padStart(2, '0');
+  const m = Math.floor((remain % 3600) / 60).toString().padStart(2, '0');
+  const s = (remain % 60).toString().padStart(2, '0');
+  $('mineTimer').textContent = `${h}:${m}:${s}`;
+  
+  const btn = $('claimBtn');
+  if (!user.tonConnected) {
+    btn.textContent = 'Connect TON to Mine';
+    btn.disabled = true;
+  } else if (remain > 0) {
+    btn.textContent = 'Claim in ' + `${h}:${m}:${s}`;
+    btn.disabled = true;
+  } else if (localUnclaimed < 0.001) {
+    btn.textContent = 'Mining...';
+    btn.disabled = true;
   } else {
-    showToast('Copy failed');
+    btn.textContent = `Claim Reward • ${localUnclaimed.toFixed(2)} RET`;
+    btn.disabled = false;
   }
-};
-window.showToast = showToast;
+}
 
-// ============ MINING LOOP ============
 setInterval(() => {
-  if (!uid) return;
-  if (!userData.tonConnected) return;
-
-  const rate = parseFloat(userData.hashRate) || 0;
-  const inc = rate * (config.miningRate || 0.000011);
+  if (!uid || !user.tonConnected) return;
+  const lvl = calcLevel(user.balance || 0);
+  const spd = parseFloat(calcSpeed(lvl));
+  const inc = spd * (config.miningRate || 0.000011);
   localUnclaimed += inc;
-
-  document.getElementById('unclaimed').textContent = localUnclaimed.toFixed(5);
-  document.getElementById('usdVal').textContent = (localUnclaimed * (config.usdRate || 0.042)).toFixed(2);
-
-  // Sync to Firebase every 5s
+  
+  if ($('tab-mine').classList.contains('active')) updateMineProgress();
+  
   const now = Date.now();
-  if (now - lastSync > 5000) {
-    lastSync = now;
+  if (!syncTimer || now - syncTimer > 10000) {
+    syncTimer = now;
     update(ref(db, 'users/' + uid), { unclaimed: localUnclaimed }).catch(() => {});
   }
 }, 1000);
 
-// ============ TIMER LOOP ============
-setInterval(() => {
-  if (!uid) return;
-  const remaining = getClaimRemaining();
-  const timerEl = document.getElementById('timer');
-  if (timerEl) timerEl.textContent = formatTime(remaining);
+window.claimMining = async () => {
+  if (!user.tonConnected || localUnclaimed < 0.001) return;
+  const amount = localUnclaimed;
+  const newBal = (user.balance || 0) + amount;
+  const newLvl = calcLevel(newBal);
+  
+  await update(ref(db, 'users/' + uid), {
+    balance: newBal,
+    unclaimed: 0,
+    miningStart: Date.now(),
+    level: newLvl,
+    totalMined: (user.totalMined || 0) + amount
+  });
+  localUnclaimed = 0;
+  showToast(`Claimed ${amount.toFixed(4)} RET`);
+  push(ref(db, 'history/' + uid), { type: 'Mining Claim', amount, date: Date.now() });
+};
 
-  // Progress ring
-  const ci = config.claimInterval || 75600;
-  const elapsed = Math.floor((Date.now() - (userData.miningStart || Date.now())) / 1000);
-  const pct = Math.min(1, elapsed / ci);
-  const ring = document.getElementById('mineProgress');
-  if (ring) ring.style.strokeDashoffset = 628 - (pct * 628);
+// --- TASKS TAB ---
+function renderTasks() {
+  const streak = user.streak || 0;
+  const lastCheck = user.lastCheckIn || 0;
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000;
+  const canCheckIn = (now - lastCheck) >= oneDay;
+  
+  let gridHtml = '';
+  const rewards = [5, 10, 15, 20, 25, 30, 50];
+  for (let i = 0; i < 7; i++) {
+    let isClaimed = i < streak;
+    let isActive = i === streak && canCheckIn;
+    let cls = isClaimed ? 'claimed' : (isActive ? 'active' : '');
+    gridHtml += `
+      <div class="day-box ${cls}">
+        <div class="day-label">Day ${i+1}</div>
+        <div class="day-reward"><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png"/>+${rewards[i]}</div>
+      </div>
+    `;
+  }
+  $('dailyCheckinGrid').innerHTML = gridHtml;
+  
+  const btn = $('checkinBtn');
+  if (canCheckIn) {
+    btn.disabled = false;
+    btn.textContent = `Claim Day ${streak + 1} Reward`;
+  } else {
+    btn.disabled = true;
+    const rem = oneDay - (now - lastCheck);
+    const h = Math.floor(rem / 3600000);
+    const m = Math.floor((rem % 3600000) / 60000);
+    btn.textContent = `Next in ${h}h ${m}m`;
+  }
+  
+  let tasksHtml = '';
+  if (config.tasks && config.tasks.length > 0) {
+    config.tasks.forEach(task => {
+      const isAd = task.type === 'ad_task';
+      tasksHtml += `
+        <div class="task-item">
+          <div class="task-info">
+            <div class="task-icon-wrap" style="background: ${isAd ? '#A855F7' : '#45A6F5'};">
+              ${isAd ? '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' : '<svg class="icon" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z"/></svg>'}
+            </div>
+            <div class="task-text">
+              <h4>${task.title}</h4>
+              <p><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png"/> +${task.reward} RET</p>
+            </div>
+          </div>
+          <button class="task-btn" onclick="${isAd ? `watchAd('${task.zoneId}', ${task.reward})` : `doLegalTask('${task.link}', ${task.reward})`}">
+            ${isAd ? 'Watch' : 'Start'}
+          </button>
+        </div>
+      `;
+    });
+  } else {
+    tasksHtml = '<div style="text-align:center; padding:20px; color:var(--text-sub);">No tasks available right now.</div>';
+  }
+  $('tasksList').innerHTML = tasksHtml;
+}
 
-  updateClaimButton();
-}, 1000);
+window.claimDailyCheckin = async () => {
+  const streak = user.streak || 0;
+  const lastCheck = user.lastCheckIn || 0;
+  const oneDay = 24 * 60 * 60 * 1000;
+  
+  if (Date.now() - lastCheck < oneDay) {
+    showToast('Already claimed today!'); return;
+  }
+  const rewards = [5, 10, 15, 20, 25, 30, 50];
+  const reward = rewards[streak] || 5;
+  
+  await update(ref(db, 'users/' + uid), {
+    balance: (user.balance || 0) + reward,
+    streak: streak + 1,
+    lastCheckIn: Date.now()
+  });
+  showToast(`Claimed +${reward} RET!`);
+  push(ref(db, 'history/' + uid), { type: 'Daily Check-in', amount: reward, date: Date.now() });
+};
 
-// ============ START ============
+window.doLegalTask = async (link, reward) => {
+  if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(link);
+  else window.open(link, '_blank');
+  
+  setTimeout(async () => {
+    await update(ref(db, 'users/' + uid), {
+      balance: (user.balance || 0) + reward,
+      totalMined: (user.totalMined || 0) + reward
+    });
+    showToast(`Task completed! +${reward} RET`);
+    push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
+  }, 2000);
+};
+
+window.watchAd = async (zoneId, reward) => {
+  // 1. Try to trigger Monetag Ad SDK
+  let adTriggered = false;
+  try {
+    if (typeof window['show_' + zoneId] === 'function') {
+      window['show_' + zoneId](); // Monetag function
+      adTriggered = true;
+    }
+  } catch (e) { console.log('Monetag SDK error', e); }
+  
+  // 2. Show our fallback UI timer (for visual feedback)
+  const modal = $('adModal');
+  const countEl = $('adCountdown');
+  modal.classList.add('show');
+  let c = 10; countEl.textContent = c;
+  
+  const iv = setInterval(async () => {
+    c--; countEl.textContent = c;
+    if (c <= 0) {
+      clearInterval(iv);
+      modal.classList.remove('show');
+      
+      await update(ref(db, 'users/' + uid), {
+        balance: (user.balance || 0) + reward,
+        adsToday: (user.adsToday || 0) + 1,
+        totalMined: (user.totalMined || 0) + reward
+      });
+      showToast(`Ad watched! +${reward} RET`);
+      push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
+    }
+  }, 1000);
+};
+
+// --- MINERS TAB ---
+function renderMinersTab() {
+  const bal = user.balance || 0;
+  const base = config.levelBase || 25;
+  const currentLvl = calcLevel(bal);
+  
+  $('lvlCurrent').textContent = currentLvl;
+  $('lvlPeak').textContent = Math.max(currentLvl, user.peakLevel || currentLvl);
+  
+  const nextLvl = currentLvl + 1;
+  const neededForNext = (nextLvl * base) - bal;
+  
+  $('nextLvlText').textContent = nextLvl;
+  $('lvlNeedText').textContent = `${neededForNext.toFixed(2)} RET to go`;
+  $('lvlProgressFill').style.width = `${Math.min(100, (bal % base) / base * 100)}%`;
+  
+  const spd = parseFloat(calcSpeed(currentLvl));
+  $('todayPnL').textContent = '+' + calcDaily(spd);
+  
+  let html = '';
+  for (let i = currentLvl; i <= currentLvl + 15; i++) {
+    const req = (i - 1) * base;
+    const isCurrent = i === currentLvl;
+    const isLocked = bal < req;
+    const price = (req * (config.usdRate || 0.042)).toFixed(3);
+    
+    html += `
+      <div class="level-list-item ${isCurrent ? 'current' : (isLocked ? 'locked' : '')}">
+        <div class="lvl-left">
+          <div class="lvl-badge">LV<span>${i}</span></div>
+          <div class="lvl-info">
+            <h3>Level ${i} ${isCurrent ? '<span class="badge-current">Current</span>' : ''}</h3>
+            <p>${calcSpeed(i)} TH/s • +${calcDaily(calcSpeed(i))}/day</p>
+          </div>
+        </div>
+        <div class="lvl-price">
+          <h3>${price}$</h3>
+          ${isCurrent ? '<p style="color:var(--primary);">Active</p>' : `<p>Lock ${req} RET</p>`}
+        </div>
+      </div>
+    `;
+  }
+  $('levelsList').innerHTML = html;
+}
+
+// --- FRIENDS TAB ---
+function renderFriendsTab() {
+  $('profileName').textContent = user.username || 'User';
+  $('profileHandle').textContent = '@' + (user.handle || 'user');
+  $('profileAvatar').src = user.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
+  
+  const botLink = config.botLink || 'https://t.me/ret_mine_bot';
+  $('refLinkDisplay').textContent = `${botLink.replace('https://', '')}?start=ref_${uid}`;
+  
+  get(query(ref(db, 'users'), orderByChild('referredBy'), equalTo(uid))).then(snap => {
+    if (snap.exists()) {
+      const squadUsers = Object.values(snap.val());
+      $('squadTotal').textContent = squadUsers.length;
+      $('squadQualified').textContent = squadUsers.filter(u => u.totalMined > 0).length;
+      
+      let pool = 0;
+      squadUsers.forEach(u => { pool += (u.totalMined || 0) * 0.10; });
+      $('squadPool').textContent = pool.toFixed(3);
+      $('squadPoolUsd').textContent = (pool * (config.usdRate || 0.042)).toFixed(2);
+    }
+  });
+}
+
+window.copyRefLink = () => {
+  navigator.clipboard.writeText('https://' + $('refLinkDisplay').textContent);
+  showToast('Referral link copied!');
+};
+window.shareRefLink = () => {
+  const link = 'https://' + $('refLinkDisplay').textContent;
+  const text = `Join RET Miner and get 100 RET bonus! ${link}`;
+  if (window.Telegram?.WebApp?.openTelegramLink) {
+    Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+  } else {
+    navigator.share({ title: 'RET Miner', url: link });
+  }
+};
+
+// --- WALLET TAB ---
+function renderWalletTab() {
+  $('walletBalance').textContent = (user.balance || 0).toFixed(1);
+  $('walletUsd').textContent = ((user.balance || 0) * (config.usdRate || 0.042)).toFixed(2);
+  
+  const tonSec = $('tonWalletSection');
+  if (user.tonConnected && user.tonAddress) {
+    tonSec.innerHTML = `
+      <div class="ton-left">
+        <div class="ton-icon">TON</div>
+        <div class="ton-info">
+          <h4>${user.tonAddress.slice(0, 6)}...${user.tonAddress.slice(-4)}</h4>
+          <p>0 RET on-chain</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-disconnect" onclick="disconnectTon()">Disconnect</button>
+      </div>
+    `;
+  } else {
+    tonSec.innerHTML = `
+      <div class="ton-left">
+        <div class="ton-icon">TON</div>
+        <div class="ton-info">
+          <h4>TON Wallet</h4>
+          <p>Not connected</p>
+        </div>
+      </div>
+      <button class="btn-connect" onclick="openTonConnect()">Connect</button>
+    `;
+  }
+}
+
+// Fetch REAL payouts from DB (Demo removed)
+function renderPayouts() {
+  get(query(ref(db, 'withdrawals'), limitToLast(5))).then(snap => {
+    let html = '';
+    if (snap.exists()) {
+      const items = Object.values(snap.val()).sort((a,b) => b.createdAt - a.createdAt);
+      items.forEach(i => {
+        if(i.status === 'approved') {
+          const d = new Date(i.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          html += `
+            <div class="history-list-item">
+              <div class="history-info">
+                <div class="history-icon" style="background:#E8F8EC; color:var(--green);"><svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div>
+                <div class="history-text"><h4>User ${i.uid.slice(0,4)}**</h4><p>${d}</p></div>
+              </div>
+              <div class="history-amount"><h4 style="color:var(--text-main);">${i.amount} RET</h4></div>
+            </div>
+          `;
+        }
+      });
+    }
+    $('payoutsList').innerHTML = html || '<div style="text-align: center; padding: 20px; color: var(--text-sub);">No payouts yet.</div>';
+  });
+}
+
+function renderHistory() {
+  onValue(ref(db, 'history/' + uid), snap => {
+    let historyHtml = '';
+    if (snap.exists()) {
+      const items = Object.values(snap.val()).sort((a,b) => b.date - a.date).slice(0, 10);
+      items.forEach(i => {
+        const d = new Date(i.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        historyHtml += `
+          <div class="history-list-item">
+            <div class="history-info">
+              <div class="history-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div>
+              <div class="history-text"><h4>${i.type}</h4><p>${d}</p></div>
+            </div>
+            <div class="history-amount">
+              <h4>${i.amount > 0 ? '+' : ''}${i.amount.toFixed(2)} RET</h4>
+              <p><svg style="width:12px; height:12px; fill:var(--green);" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Completed</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+    $('historyList').innerHTML = historyHtml || '<div style="text-align: center; padding: 20px; color: var(--text-sub);">No history yet.</div>';
+  });
+}
+
+// --- WITHDRAW ---
+window.openWithdraw = () => {
+  if (!user.tonConnected) { showToast('Connect TON first'); return; }
+  if ((user.balance || 0) < (config.withdrawMin || 500)) { showToast(`Min withdraw is ${config.withdrawMin || 500} RET`); return; }
+  $('wdMin').textContent = config.withdrawMin || 500;
+  $('withdrawModal').classList.add('show');
+};
+window.closeWithdraw = () => $('withdrawModal').classList.remove('show');
+window.confirmWithdraw = async () => {
+  const amt = parseFloat($('wdAmount').value);
+  if (isNaN(amt) || amt <= 0) { showToast('Invalid amount'); return; }
+  if (amt > (user.balance || 0)) { showToast('Insufficient balance'); return; }
+  if (amt < (config.withdrawMin || 500)) { showToast(`Min ${config.withdrawMin} RET`); return; }
+  
+  await update(ref(db, 'users/' + uid), { balance: user.balance - amt });
+  await push(ref(db, 'withdrawals'), {
+    uid, amount: amt, status: 'pending', createdAt: Date.now(), tonAddress: user.tonAddress
+  });
+  closeWithdraw();
+  showToast('Withdrawal requested!');
+  push(ref(db, 'history/' + uid), { type: 'Withdraw Request', amount: -amt, date: Date.now() });
+};
+
+// --- START ---
 init();
 </script>
 </body>
- </html>
+</html>
