@@ -6,8 +6,6 @@
 <title>RET Coin Miner</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
-<!-- Monetag Telegram SDK -->
-<script src="https://cdn.jsdelivr.net/npm/monetag-tg-sdk@latest/dist/index.umd.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
   
@@ -20,78 +18,45 @@
     --primary-light: #E8F3FD;
     --green: #34C759;
     --red: #FF3B30;
+    --warn: #FF9500;
     --border: #E5E5EA;
     --nav-bg: rgba(255, 255, 255, 0.95);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
-    background: var(--bg-color);
-    color: var(--text-main);
-    font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-    user-select: none;
-    padding-bottom: 100px;
+    background: var(--bg-color); color: var(--text-main);
+    font-family: 'Outfit', sans-serif; min-height: 100vh;
+    overflow-x: hidden; user-select: none; padding-bottom: 100px;
   }
   .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
   .icon { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
   
-  /* Security Block Screen */
-  #securityBlock {
-    display: none; position: fixed; inset: 0; background: #fff; z-index: 9999;
-    flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px;
-  }
+  #securityBlock { display: none; position: fixed; inset: 0; background: #fff; z-index: 9999; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
   #securityBlock h2 { color: var(--red); margin-bottom: 10px; }
   
-  /* Header */
-  .header {
-    position: sticky; top: 0; z-index: 40;
-    background: var(--bg-color);
-    padding: 12px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
+  .header { position: sticky; top: 0; z-index: 40; background: var(--bg-color); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
   .header-left { display: flex; align-items: center; gap: 10px; }
   .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #ddd; }
-  .balance-pill {
-    display: flex; align-items: center; gap: 6px;
-    background: var(--card-bg); padding: 6px 10px;
-    border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    font-weight: 700; font-size: 14px;
-  }
+  .balance-pill { display: flex; align-items: center; gap: 6px; background: var(--card-bg); padding: 6px 10px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); font-weight: 700; font-size: 14px; }
   .balance-pill img { width: 16px; height: 16px; }
-  .add-btn {
-    width: 20px; height: 20px; border-radius: 50%; background: var(--primary);
-    color: #fff; display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: bold; margin-left: 2px; cursor: pointer;
-  }
-  .level-pill {
-    background: #FFF6E5; color: #FF9500;
-    padding: 6px 12px; border-radius: 20px;
-    font-size: 13px; font-weight: 700;
-    display: flex; align-items: center; gap: 4px;
-  }
+  .add-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; margin-left: 2px; cursor: pointer; }
+  .level-pill { background: #FFF6E5; color: var(--warn); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
 
-  /* Tabs */
   .tab-section { display: none; padding: 0 16px; animation: fadeIn 0.3s ease; }
   .tab-section.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Cards */
-  .card {
-    background: var(--card-bg);
-    border-radius: 20px;
-    padding: 16px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-  }
+  .card { background: var(--card-bg); border-radius: 20px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
 
-  /* MINE TAB */
+  /* MINE */
   .mine-card { display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; padding-top: 20px; }
   .mine-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; }
   .mine-title { font-size: 14px; color: var(--text-sub); font-weight: 500; }
   .mine-subtitle { font-size: 18px; font-weight: 700; margin-top: 2px; }
-  .timer-badge { background: #E8F8EC; color: var(--green); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+  .timer-badge { background: #E8F8EC; color: var(--green); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   
   .coin-container { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
   .coin-ring { position: absolute; inset: 0; border-radius: 50%; border: 4px solid var(--primary-light); border-top-color: var(--primary); animation: spin 20s linear infinite; }
@@ -101,12 +66,13 @@
   @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
   .unclaimed-text { color: var(--text-sub); font-size: 14px; }
-  .unclaimed-amount { font-size: 36px; font-weight: 800; margin: 4px 0; color: var(--text-main); }
+  .unclaimed-amount { font-size: 38px; font-weight: 800; margin: 4px 0; color: var(--text-main); }
   .unclaimed-amount span { font-size: 18px; color: var(--text-sub); font-weight: 600; }
   .unclaimed-sub { color: var(--text-sub); font-size: 13px; margin-bottom: 16px; }
   
-  .btn-primary { width: 100%; height: 54px; border-radius: 16px; background: var(--primary); color: #fff; font-size: 16px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { width: 100%; min-height: 54px; padding: 0 16px; border-radius: 16px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; border: none; cursor: pointer; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; line-height: 1.2; text-align: center; }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary:not(:disabled) { box-shadow: 0 6px 18px rgba(69, 166, 245, 0.35); }
   
   .stats-list { margin-top: 20px; width: 100%; }
   .stat-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
@@ -116,7 +82,7 @@
   .stat-val { font-weight: 700; }
   .stat-val.green { color: var(--green); }
 
-  /* TASKS TAB */
+  /* TASKS */
   .section-title { font-size: 14px; font-weight: 700; margin: 16px 0 12px 4px; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.5px; }
   .daily-checkin { display: flex; justify-content: space-between; margin-bottom: 16px; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
   .day-box { flex: 1; min-width: 44px; background: var(--bg-color); border-radius: 12px; padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: 1px solid var(--border); transition: all 0.3s; }
@@ -126,16 +92,18 @@
   .day-reward { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 2px; }
   .day-reward img { width: 12px; height: 12px; }
 
-  .task-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-color); border-radius: 16px; margin-bottom: 10px; }
-  .task-info { display: flex; align-items: center; gap: 12px; }
-  .task-icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; }
-  .task-text h4 { font-size: 15px; font-weight: 600; }
+  .task-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 12px; background: var(--card-bg); border-radius: 16px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); gap: 10px; }
+  .task-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .task-icon-wrap { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+  .task-text { min-width: 0; }
+  .task-text h4 { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .task-text p { font-size: 12px; color: var(--text-sub); margin-top: 2px; display: flex; align-items: center; gap: 4px; }
   .task-text p img { width: 12px; height: 12px; }
-  .task-btn { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .task-status { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+  .task-btn { background: var(--primary); color: #fff; border: none; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
   .task-btn:disabled { background: #D1D1D6; cursor: not-allowed; }
 
-  /* MINERS TAB */
+  /* MINERS */
   .miner-stats-header { display: flex; justify-content: space-between; text-align: center; margin-bottom: 16px; }
   .miner-stat-box { flex: 1; background: var(--bg-color); border-radius: 16px; padding: 12px; margin: 0 4px; }
   .miner-stat-val { font-size: 20px; font-weight: 800; }
@@ -156,17 +124,18 @@
   .lvl-info p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
   .lvl-price { text-align: right; }
   .lvl-price h3 { font-size: 16px; font-weight: 700; }
-  .lvl-price p { font-size: 12px; color: #FF9500; font-weight: 600; }
+  .lvl-price p { font-size: 12px; color: var(--warn); font-weight: 600; }
   .badge-current { background: var(--primary); color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 10px; }
 
-  /* FRIENDS TAB */
-  .profile-card { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  /* FRIENDS */
+  .profile-card { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding: 16px; }
   .profile-avatar { width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px; }
   .profile-info h2 { font-size: 20px; font-weight: 800; }
   .profile-info p { font-size: 14px; color: var(--text-sub); }
   .profile-badges { display: flex; gap: 6px; margin-top: 6px; }
   .p-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: var(--bg-color); color: var(--text-sub); display: flex; align-items: center; gap: 4px; font-weight: 600; }
   .p-badge.red { color: var(--red); background: #FFEBE9; }
+  .p-badge.green { color: var(--green); background: #E8F8EC; }
 
   .invite-card { text-align: center; background: linear-gradient(180deg, #E8F3FD 0%, #FFFFFF 100%); }
   .invite-heart { width: 80px; height: 80px; margin: 0 auto 16px; }
@@ -182,7 +151,7 @@
   .squad-box h3 { font-size: 18px; font-weight: 800; }
   .squad-box p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
 
-  /* WALLET TAB */
+  /* WALLET */
   .wallet-card { text-align: center; padding: 24px 16px; }
   .wallet-icon { width: 64px; height: 64px; margin-bottom: 12px; }
   .wallet-bal { font-size: 36px; font-weight: 800; }
@@ -193,18 +162,20 @@
   .wallet-btn.withdraw { background: var(--primary); color: #fff; }
   .wallet-btn.buy { background: var(--primary-light); color: var(--primary); }
   
-  .ton-card { display: flex; align-items: center; justify-content: space-between; }
-  .ton-left { display: flex; align-items: center; gap: 12px; }
-  .ton-icon { width: 40px; height: 40px; background: #0098EA; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
-  .ton-info h4 { font-size: 15px; font-weight: 700; }
+  .ton-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .ton-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+  .ton-icon { width: 40px; height: 40px; background: #0098EA; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; flex-shrink: 0; }
+  .ton-info { min-width: 0; }
+  .ton-info h4 { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ton-info p { font-size: 13px; color: var(--text-sub); }
-  .btn-connect { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
-  .btn-disconnect { background: #FFEBE9; color: var(--red); border: none; padding: 8px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
+  .btn-connect, .btn-disconnect { padding: 8px 14px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; border: none; flex-shrink: 0; }
+  .btn-connect { background: var(--primary); color: #fff; }
+  .btn-disconnect { background: #FFEBE9; color: var(--red); }
 
   .history-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
   .history-list-item:last-child { border-bottom: none; }
   .history-info { display: flex; align-items: center; gap: 12px; }
-  .history-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; }
+  .history-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .history-text h4 { font-size: 15px; font-weight: 600; }
   .history-text p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
   .history-amount { text-align: right; }
@@ -221,46 +192,47 @@
   .float-mine-btn .icon { width: 24px; height: 24px; fill: #fff; margin-bottom: 2px; }
   .float-mine-btn span { font-size: 10px; font-weight: 700; }
 
-  /* Modals & Overlays */
+  /* Modals */
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: flex-end; justify-content: center; padding: 16px; }
   .modal.show { display: flex; }
   .modal-box { width: 100%; max-width: 400px; background: #fff; border-radius: 24px; padding: 24px; animation: slideUp 0.3s; text-align: center; }
   @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
   .ad-loading-circle { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
   
-  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 90%; text-align: center; }
   .toast.show { opacity: 1; }
+  .toast.error { background: rgba(255,59,48,0.95); }
   
   .loading-screen { position: fixed; inset: 0; background: #fff; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .loading-spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
 
-  /* Form Inputs */
-  .input-field { width: 100%; height: 50px; border-radius: 12px; border: 1px solid var(--border); padding: 0 16px; font-size: 16px; outline: none; margin-bottom: 16px; font-family: inherit; background: var(--bg-color); }
+  .input-field { width: 100%; height: 50px; border-radius: 12px; border: 1px solid var(--border); padding: 0 16px; font-size: 16px; outline: none; margin-bottom: 16px; font-family: inherit; background: var(--bg-color); color: var(--text-main); }
   .input-field:focus { border-color: var(--primary); }
+
+  .verify-card { display: flex; flex-direction: column; gap: 12px; }
+  .verify-row { display: flex; align-items: center; gap: 12px; }
+  .verify-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
-<!-- Security Block -->
 <div id="securityBlock">
   <svg style="width: 64px; height: 64px; fill: var(--red); margin-bottom: 16px;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
   <h2>Access Denied</h2>
   <p style="color: var(--text-sub); margin-top: 8px;">This app can only be accessed inside Telegram.<br>Please open via our official bot.</p>
 </div>
 
-<!-- Loading Screen -->
 <div id="loading" class="loading-screen">
   <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width: 80px; height: 80px; margin-bottom: 20px; animation: float 2s infinite;" alt="RET" />
   <div class="loading-spinner"></div>
 </div>
 
-<!-- Header -->
 <div id="header" class="header" style="display: none;">
   <div class="header-left">
     <img id="userAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="avatar" />
     <div class="balance-pill">
       <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" />
-      <span id="headerBalance">0.0</span>
+      <span id="headerBalance">0.00</span>
       <span style="color: var(--text-sub); font-size: 12px;">RET</span>
       <div class="add-btn" onclick="switchTab('wallet')">+</div>
     </div>
@@ -271,7 +243,7 @@
   </div>
 </div>
 
-<!-- ==================== TAB: MINE ==================== -->
+<!-- MINE -->
 <div id="tab-mine" class="tab-section active">
   <div class="card mine-card">
     <div class="mine-header">
@@ -280,8 +252,8 @@
         <div class="mine-subtitle">Cloud Mining</div>
       </div>
       <div class="timer-badge">
-        <span style="width: 6px; height: 6px; background: var(--green); border-radius: 50%;"></span>
-        <span id="mineTimer">00:00:00</span>
+        <span class="live-dot"></span>
+        <span>Live 24/7</span>
       </div>
     </div>
 
@@ -295,7 +267,7 @@
     <div class="unclaimed-amount font-mono"><span id="unclaimedAmount">0.00000</span> <span>RET</span></div>
     <div class="unclaimed-sub">≈ $<span id="unclaimedUsd">0.0000</span> • <span id="mineHash">0.00</span> TH/s</div>
 
-    <button id="claimBtn" class="btn-primary" onclick="claimMining()">Claim Reward</button>
+    <button id="claimBtn" class="btn-primary" onclick="claimMining()" disabled>0.10 RET needed to claim</button>
   </div>
 
   <div class="section-title">MINER</div>
@@ -330,12 +302,12 @@
         <div class="stat-icon" style="background: #A855F7;"><svg class="icon" viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div>
         In-App
       </div>
-      <div class="stat-val font-mono"><span id="holdInApp">0.0</span> RET</div>
+      <div class="stat-val font-mono"><span id="holdInApp">0.00</span> RET</div>
     </div>
   </div>
 </div>
 
-<!-- ==================== TAB: TASKS ==================== -->
+<!-- TASKS -->
 <div id="tab-tasks" class="tab-section">
   <div class="section-title">DAILY CHECK-IN</div>
   <div class="card">
@@ -347,7 +319,7 @@
   <div id="tasksList"></div>
 </div>
 
-<!-- ==================== TAB: MINERS ==================== -->
+<!-- MINERS -->
 <div id="tab-miners" class="tab-section">
   <div class="card">
     <div class="miner-stats-header">
@@ -375,21 +347,19 @@
       Mine more RET to unlock faster miners. Nothing is spent — your level follows what you hold.
     </p>
   </div>
-
-  <div class="section-title">LEVELS (Up to 1,000)</div>
+  <div class="section-title">LEVELS</div>
   <div id="levelsList"></div>
 </div>
 
-<!-- ==================== TAB: FRIENDS ==================== -->
+<!-- FRIENDS -->
 <div id="tab-friends" class="tab-section">
-  <div class="profile-card">
+  <div class="card profile-card">
     <img id="profileAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="profile-avatar" />
     <div class="profile-info">
       <h2 id="profileName">User</h2>
       <p id="profileHandle">@username</p>
       <div class="profile-badges">
-        <div class="p-badge"><svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg> Non-NFT Holder</div>
-        <div class="p-badge red"><svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg> Non-Verified</div>
+        <div class="p-badge" id="profileVerifyBadge"><svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg> Unverified</div>
       </div>
     </div>
   </div>
@@ -406,9 +376,7 @@
         <svg class="icon" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg> Share
       </button>
     </div>
-    <div style="margin-top: 16px; font-size: 12px; color: var(--text-sub); word-break: break-all;" id="refLinkDisplay">
-      Loading...
-    </div>
+    <div style="margin-top: 16px; font-size: 12px; color: var(--text-sub); word-break: break-all;" id="refLinkDisplay">Loading...</div>
   </div>
 
   <div class="card" style="margin-top: 16px;">
@@ -423,32 +391,22 @@
       </div>
       <div style="color: var(--green); font-weight: 700; font-size: 14px;">≈ $<span id="squadPoolUsd">0.00</span></div>
     </div>
-    <button class="btn-primary" style="height: 40px; margin-top: 16px; font-size: 14px; background: #F4F5F7; color: var(--text-sub);" disabled>Nothing to claim yet</button>
   </div>
 
-  <div class="section-title">INVITE BONUS</div>
+  <div class="section-title">SQUAD</div>
   <div class="squad-stats">
-    <div class="squad-box">
-      <h3 style="color: var(--green);" id="squadQualified">0</h3>
-      <p>Qualified</p>
-    </div>
-    <div class="squad-box">
-      <h3 id="squadTotal">0</h3>
-      <p>Total Squad</p>
-    </div>
-    <div class="squad-box">
-      <h3 style="color: #FF9500;" id="squadUnclaimed">0</h3>
-      <p>Unclaimed</p>
-    </div>
+    <div class="squad-box"><h3 style="color: var(--green);" id="squadQualified">0</h3><p>Qualified</p></div>
+    <div class="squad-box"><h3 id="squadTotal">0</h3><p>Total</p></div>
+    <div class="squad-box"><h3 style="color: var(--warn);" id="squadUnclaimed">0</h3><p>Unclaimed</p></div>
   </div>
 </div>
 
-<!-- ==================== TAB: WALLET ==================== -->
+<!-- WALLET -->
 <div id="tab-wallet" class="tab-section">
   <div class="card wallet-card">
     <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="wallet-icon" style="border-radius: 50%;" />
     <div style="font-size: 14px; color: var(--text-sub); font-weight: 500;">In-App Wallet Balance</div>
-    <div class="wallet-bal font-mono"><span id="walletBalance">0.0</span> <span>RET</span></div>
+    <div class="wallet-bal font-mono"><span id="walletBalance">0.00</span> <span>RET</span></div>
     <div class="wallet-usd">≈ $<span id="walletUsd">0.00</span></div>
     <div class="wallet-btns">
       <button class="wallet-btn withdraw" onclick="openWithdraw()">Withdraw</button>
@@ -456,14 +414,12 @@
     </div>
   </div>
 
+  <div class="section-title">ACCOUNT STATUS</div>
+  <div class="card" id="verifyStatusCard"></div>
+
   <div class="section-title">GRAM WALLET</div>
   <div class="card">
     <div class="ton-card" id="tonWalletSection"></div>
-  </div>
-
-  <div class="section-title">LIVE PAYOUTS & DEPOSITS <span style="color: var(--green); margin-left: 6px;">● Live</span></div>
-  <div class="card" style="padding: 0 16px;" id="liveTxList">
-    <div style="text-align: center; padding: 20px; color: var(--text-sub);">Loading...</div>
   </div>
 
   <div class="section-title">APP HISTORY</div>
@@ -472,7 +428,7 @@
   </div>
 </div>
 
-<!-- ==================== BOTTOM NAV ==================== -->
+<!-- NAV -->
 <div class="bottom-nav">
   <button class="float-mine-btn" onclick="switchTab('mine')">
     <svg class="icon" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
@@ -498,7 +454,7 @@
   </div>
 </div>
 
-<!-- ==================== MODALS ==================== -->
+<!-- MODALS -->
 <div id="withdrawModal" class="modal">
   <div class="modal-box">
     <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Withdraw RET</h3>
@@ -527,30 +483,31 @@
 <div id="verifyModal" class="modal">
   <div class="modal-box">
     <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Account Verification</h3>
-    <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 16px;">To verify your account, you need to deposit <b>0.05 TON</b>. This is a one-time fee.</p>
-    <button onclick="payVerify()" style="width: 100%; height: 48px; border-radius: 12px; border: none; background: var(--primary); color: #fff; font-weight: 700; cursor: pointer; margin-bottom: 10px;">Pay 0.05 TON</button>
+    <p style="font-size: 13px; color: var(--text-sub); margin-bottom: 16px; line-height: 1.5;">
+      To verify your account, you need to deposit <b><span id="verifyPrice">0.05</span> TON</b>.<br>This is a one-time fee required for withdrawals.
+    </p>
+    <button onclick="payVerify()" style="width: 100%; height: 48px; border-radius: 12px; border: none; background: var(--primary); color: #fff; font-weight: 700; cursor: pointer; margin-bottom: 10px;">Pay <span id="verifyPriceBtn">0.05</span> TON</button>
     <button onclick="closeVerify()" style="width: 100%; height: 48px; border-radius: 12px; border: none; background: var(--bg-color); font-weight: 700; cursor: pointer;">Cancel</button>
   </div>
 </div>
 
-<!-- Ad Modal -->
 <div id="adModal" class="modal">
   <div class="modal-box">
-    <div class="ad-loading-circle"></div>
-    <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Processing Ad...</h3>
-    <p style="font-size: 14px; color: var(--text-sub);">Please wait <span id="adCountdown">10</span>s to claim reward.</p>
+    <div id="adSpinner" class="ad-loading-circle"></div>
+    <h3 id="adModalTitle" style="font-size: 18px; font-weight: 800; margin-bottom: 8px;">Loading Ad...</h3>
+    <p id="adModalDesc" style="font-size: 14px; color: var(--text-sub);">Please wait...</p>
+    <button id="adCloseBtn" onclick="closeAdModal()" style="display: none; margin-top: 16px; width: 100%; height: 44px; border-radius: 12px; border: none; background: var(--bg-color); font-weight: 700; cursor: pointer;">Close</button>
   </div>
 </div>
 
 <div id="toast" class="toast">Message</div>
 
-<!-- ==================== JAVASCRIPT ==================== -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-// --- 1. SECURITY CHECK ---
+// --- 1. TELEGRAM CHECK ---
 const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
 if (!isTelegram && !isLocal) {
@@ -559,7 +516,7 @@ if (!isTelegram && !isLocal) {
   throw new Error("Unauthorized Access. Please open in Telegram.");
 }
 
-// --- FIREBASE CONFIG ---
+// --- 2. FIREBASE ---
 const firebaseConfig = {
   apiKey: "AIzaSyBCAbDM0_mlRH1nvRXMzTLy19SITl-5ijg",
   authDomain: "ret-coin-mine.firebaseapp.com",
@@ -573,40 +530,45 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// --- GLOBAL STATE ---
+// --- 3. STATE ---
 let uid = null;
 let user = {};
 let config = {
   levelBase: 25, miningRate: 0.000011, usdRate: 0.042, withdrawMin: 500,
   botLink: "https://t.me/ret_mine_bot",
-  adminWallet: "UQ...", // ডিফল্ট, অ্যাডমিন প্যানেল থেকে আসবে
-  retPriceTon: 0.001, // 1 RET = 0.001 TON
+  adminWallet: "UQ...",
+  retPriceTon: 0.001,
+  verifyPrice: 0.05,
+  minClaimAmount: 0.10,
   tasks: []
 };
 let tonConnectUI = null;
 let localUnclaimed = 0;
-let syncTimer = null;
 let referralParam = null;
+const claimingTasks = new Set();
+const adZoneLoading = {};
 
-// --- HELPERS ---
+// --- 4. HELPERS ---
 const $ = id => document.getElementById(id);
-const showToast = (msg) => {
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n, d = 2) => (Number(n) || 0).toFixed(d);
+const showToast = (msg, isError = false) => {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  clearTimeout(t._timeout);
+  t._timeout = setTimeout(() => t.classList.remove('show'), 3200);
 };
-const calcLevel = (bal) => Math.max(1, Math.floor(bal / (config.levelBase || 25)) + 1);
+const calcLevel = (bal) => Math.max(1, Math.floor((Number(bal) || 0) / (config.levelBase || 25)) + 1);
 const calcSpeed = (lvl) => (0.5 + lvl * 0.03).toFixed(2);
-const calcDaily = (spd) => (spd * (config.miningRate || 0.000011) * 86400).toFixed(2);
+const calcDaily = (spd) => (parseFloat(spd) * (config.miningRate || 0.000011) * 86400).toFixed(2);
 
-// --- TELEGRAM INIT ---
+// --- 5. TELEGRAM ---
 function getTelegramUser() {
   if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
     const u = Telegram.WebApp.initDataUnsafe.user;
-    return {
-      name: (u.first_name + ' ' + (u.last_name || '')).trim(),
-      username: u.username || 'user',
-      photo: u.photo_url || ''
-    };
+    return { name: (u.first_name + ' ' + (u.last_name || '')).trim(), username: u.username || 'user', photo: u.photo_url || '' };
   }
   return { name: 'Test User', username: 'testuser', photo: '' };
 }
@@ -617,18 +579,18 @@ if (window.Telegram?.WebApp) {
   if (startParam && startParam.startsWith('ref_')) referralParam = startParam.replace('ref_', '');
 }
 
-// --- TON CONNECT INIT ---
+// --- 6. TON CONNECT ---
 function initTonConnect() {
   const manifestUrl = 'https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json';
   if (typeof TON_CONNECT_UI === 'undefined') return;
-  
   tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl });
-  
   tonConnectUI.onStatusChange(async (wallet) => {
     if (!uid) return;
     if (wallet && wallet.account?.address) {
       await update(ref(db, 'users/' + uid), { tonConnected: true, tonAddress: wallet.account.address });
       showToast('TON Wallet Connected');
+      // Auto-prompt verify if not verified
+      if (!user.isVerified) setTimeout(() => openVerify(), 600);
     } else {
       await update(ref(db, 'users/' + uid), { tonConnected: false, tonAddress: '' });
     }
@@ -638,17 +600,28 @@ function initTonConnect() {
 window.openTonConnect = async () => { if (tonConnectUI) await tonConnectUI.openModal(); };
 window.disconnectTon = async () => { if (tonConnectUI) { await tonConnectUI.disconnect(); showToast('TON Wallet Disconnected'); } };
 
-// --- MAIN INIT ---
+// --- 7. OFFLINE MINING ENGINE ---
+function calcUnclaimed() {
+  const base = Number(user.unclaimed) || 0;
+  const lastSync = user.lastSyncTime || Date.now();
+  const elapsed = Math.max(0, (Date.now() - lastSync) / 1000);
+  const lvl = calcLevel(user.balance || 0);
+  const spd = parseFloat(calcSpeed(lvl));
+  return base + elapsed * spd * (config.miningRate || 0.000011);
+}
+
+// --- 8. MAIN INIT ---
 async function init() {
+  // Config realtime
   onValue(ref(db, 'config'), (snap) => {
     if (snap.exists()) {
       config = { ...config, ...snap.val() };
-      renderTasks();
+      if (uid) { renderTasks(); renderMineTab(); }
     }
   });
 
   try { await signInAnonymously(auth); } catch (e) {
-    showToast('Auth Error: Enable Anonymous Login');
+    showToast('Auth Error: Enable Anonymous Login', true);
     $('loading').style.display = 'none';
     return;
   }
@@ -660,24 +633,23 @@ async function init() {
     onValue(userRef, async (snap) => {
       if (snap.exists()) {
         user = snap.val();
-        localUnclaimed = user.unclaimed || 0;
       } else {
         const tg = getTelegramUser();
         user = {
-          balance: 0, unclaimed: 0, miningStart: Date.now(), level: 1,
-          totalMined: 0, adsToday: 0, streak: 0, lastCheckIn: 0,
+          balance: 0, unclaimed: 0, level: 1, totalMined: 0, adsToday: 0,
+          streak: 0, lastCheckIn: 0,
           tonConnected: false, tonAddress: '', isVerified: false,
           username: tg.name, handle: tg.username, photo: tg.photo,
           referredBy: referralParam || null, createdAt: Date.now(),
-          taskClaims: {} // { taskId: timestamp }
+          lastSyncTime: Date.now(),
+          taskClaims: {}
         };
         await set(userRef, user);
-        
         if (referralParam && referralParam !== uid) {
-           const refSnap = await get(ref(db, 'users/' + referralParam));
-           if (refSnap.exists()) {
-              await update(ref(db, 'users/' + referralParam), { balance: (refSnap.val().balance || 0) + 100 });
-           }
+          const refSnap = await get(ref(db, 'users/' + referralParam));
+          if (refSnap.exists()) {
+            await update(ref(db, 'users/' + referralParam), { balance: (refSnap.val().balance || 0) + 100 });
+          }
         }
       }
       updateGlobalUI();
@@ -685,7 +657,6 @@ async function init() {
       renderMinersTab();
       renderFriendsTab();
       renderWalletTab();
-      renderLiveTx();
       renderHistory();
     });
     
@@ -696,26 +667,27 @@ async function init() {
   });
 }
 
-// --- GLOBAL UI UPDATE ---
+// --- 9. GLOBAL UI ---
 function updateGlobalUI() {
   const tg = getTelegramUser();
   $('userAvatar').src = user.photo || tg.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
-  $('headerBalance').textContent = (user.balance || 0).toFixed(1);
+  $('headerBalance').textContent = fmt(user.balance, 2);
   $('headerLevel').textContent = calcLevel(user.balance || 0);
-  if ($('tab-mine').classList.contains('active')) renderMineTab();
 }
 
-// --- TABS LOGIC ---
 window.switchTab = (tabId) => {
   document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
-  $(`tab-${tabId}`).classList.add('active');
+  const tab = $(`tab-${tabId}`);
+  if (tab) tab.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
   if (tabId === 'miners') renderMinersTab();
   if (tabId === 'friends') renderFriendsTab();
-  if (tabId === 'wallet') { renderWalletTab(); renderHistory(); renderLiveTx(); }
+  if (tabId === 'wallet') { renderWalletTab(); renderHistory(); }
+  if (tabId === 'tasks') renderTasks();
+  if (tabId === 'mine') renderMineTab();
 };
 
-// --- MINE TAB ---
+// --- 10. MINE TAB ---
 function renderMineTab() {
   const lvl = calcLevel(user.balance || 0);
   const spd = calcSpeed(lvl);
@@ -724,190 +696,315 @@ function renderMineTab() {
   $('statSpeed').textContent = spd + ' TH/s';
   $('mineHash').textContent = spd;
   $('stat24h').textContent = '+' + calcDaily(spd) + ' RET';
-  $('holdInApp').textContent = (user.balance || 0).toFixed(1);
+  $('holdInApp').textContent = fmt(user.balance, 2);
   updateMineProgress();
 }
 
 function updateMineProgress() {
-  $('unclaimedAmount').textContent = localUnclaimed.toFixed(5);
-  $('unclaimedUsd').textContent = (localUnclaimed * (config.usdRate || 0.042)).toFixed(4);
-  
-  const claimInterval = 86400; // 24 hours
-  const elapsed = Math.floor((Date.now() - (user.miningStart || Date.now())) / 1000);
-  const remain = Math.max(0, claimInterval - elapsed);
-  
-  const h = Math.floor(remain / 3600).toString().padStart(2, '0');
-  const m = Math.floor((remain % 3600) / 60).toString().padStart(2, '0');
-  const s = (remain % 60).toString().padStart(2, '0');
-  $('mineTimer').textContent = `${h}:${m}:${s}`;
-  
+  const amt = localUnclaimed || 0;
+  $('unclaimedAmount').textContent = amt.toFixed(5);
+  $('unclaimedUsd').textContent = (amt * (config.usdRate || 0.042)).toFixed(4);
+
+  const minClaim = Number(config.minClaimAmount) || 0.10;
   const btn = $('claimBtn');
-  if (!user.tonConnected) { btn.textContent = 'Connect TON to Mine'; btn.disabled = true; }
-  else if (remain > 0) { btn.textContent = 'Claim in ' + `${h}:${m}:${s}`; btn.disabled = true; }
-  else if (localUnclaimed < 0.001) { btn.textContent = 'Mining...'; btn.disabled = true; }
-  else { btn.textContent = `Claim Reward • ${localUnclaimed.toFixed(2)} RET`; btn.disabled = false; }
+  if (amt >= minClaim) {
+    btn.textContent = `Claim ${amt.toFixed(4)} RET`;
+    btn.disabled = false;
+  } else {
+    const need = (minClaim - amt).toFixed(4);
+    btn.textContent = `${need} more RET needed to claim`;
+    btn.disabled = true;
+  }
 }
 
+// Tick: update display from live calc
 setInterval(() => {
-  if (!uid || !user.tonConnected) return;
-  const lvl = calcLevel(user.balance || 0);
-  const spd = parseFloat(calcSpeed(lvl));
-  localUnclaimed += spd * (config.miningRate || 0.000011);
+  if (!uid) return;
+  localUnclaimed = calcUnclaimed();
   if ($('tab-mine').classList.contains('active')) updateMineProgress();
-  
-  const now = Date.now();
-  if (!syncTimer || now - syncTimer > 10000) {
-    syncTimer = now;
-    update(ref(db, 'users/' + uid), { unclaimed: localUnclaimed }).catch(() => {});
-  }
 }, 1000);
 
+// Sync every 10s (also runs in background via visibility wakeup)
+setInterval(async () => {
+  if (!uid || !user.lastSyncTime) return;
+  const amt = calcUnclaimed();
+  try {
+    await update(ref(db, 'users/' + uid), { unclaimed: amt, lastSyncTime: Date.now() });
+  } catch (e) { /* silent */ }
+}, 10000);
+
 window.claimMining = async () => {
-  if (!user.tonConnected || localUnclaimed < 0.001) return;
-  const amount = localUnclaimed;
-  const newBal = (user.balance || 0) + amount;
-  await update(ref(db, 'users/' + uid), {
-    balance: newBal, unclaimed: 0, miningStart: Date.now(),
-    level: calcLevel(newBal), totalMined: (user.totalMined || 0) + amount
-  });
-  localUnclaimed = 0;
-  showToast(`Claimed ${amount.toFixed(4)} RET`);
-  push(ref(db, 'history/' + uid), { type: 'Mining Claim', amount, date: Date.now() });
+  const amt = calcUnclaimed();
+  const minClaim = Number(config.minClaimAmount) || 0.10;
+  if (amt < minClaim) return showToast(`Minimum ${minClaim} RET needed`, true);
+  const newBal = (user.balance || 0) + amt;
+  try {
+    await update(ref(db, 'users/' + uid), {
+      balance: newBal, unclaimed: 0, lastSyncTime: Date.now(),
+      totalMined: (user.totalMined || 0) + amt,
+      level: calcLevel(newBal)
+    });
+    // Optimistic local update
+    user.balance = newBal;
+    user.unclaimed = 0;
+    user.lastSyncTime = Date.now();
+    user.totalMined = (user.totalMined || 0) + amt;
+    localUnclaimed = 0;
+    showToast(`Claimed ${amt.toFixed(4)} RET!`);
+    push(ref(db, 'history/' + uid), { type: 'Mining Claim', amount: amt, date: Date.now() });
+  } catch (e) {
+    showToast('Claim failed: ' + e.message, true);
+  }
 };
 
-// --- TASKS TAB ---
+// --- 11. TASKS ---
+async function recordTaskClaim(taskId, limit, cooldownHours) {
+  const current = (user.taskClaims && user.taskClaims[taskId]) || { count: 0, lastTime: 0 };
+  const now = Date.now();
+  const hoursPassed = (now - current.lastTime) / (1000 * 60 * 60);
+  const shouldReset = current.count >= limit && hoursPassed >= cooldownHours;
+  const newCount = shouldReset ? 1 : current.count + 1;
+  const updateData = {
+    [`taskClaims/${taskId}/count`]: newCount,
+    [`taskClaims/${taskId}/lastTime`]: now
+  };
+  await update(ref(db, 'users/' + uid), updateData);
+  if (!user.taskClaims) user.taskClaims = {};
+  user.taskClaims[taskId] = { count: newCount, lastTime: now };
+}
+
 function renderTasks() {
+  // Daily check-in grid
   const streak = user.streak || 0;
   const lastCheck = user.lastCheckIn || 0;
   const now = Date.now();
   const oneDay = 24 * 60 * 60 * 1000;
   const canCheckIn = (now - lastCheck) >= oneDay;
-  
+
   let gridHtml = '';
   const rewards = [5, 10, 15, 20, 25, 30, 50];
   for (let i = 0; i < 7; i++) {
-    let isClaimed = i < streak;
-    let isActive = i === streak && canCheckIn;
-    let cls = isClaimed ? 'claimed' : (isActive ? 'active' : '');
+    const isClaimed = i < streak;
+    const isActive = i === streak && canCheckIn;
+    const cls = isClaimed ? 'claimed' : (isActive ? 'active' : '');
     gridHtml += `<div class="day-box ${cls}"><div class="day-label">Day ${i+1}</div><div class="day-reward"><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png"/>+${rewards[i]}</div></div>`;
   }
   $('dailyCheckinGrid').innerHTML = gridHtml;
-  
+
   const btn = $('checkinBtn');
-  if (canCheckIn) { btn.disabled = false; btn.textContent = `Claim Day ${streak + 1} Reward`; }
+  if (canCheckIn) { btn.disabled = false; btn.textContent = `Claim Day ${Math.min(streak + 1, 7)} Reward`; }
   else {
     btn.disabled = true;
     const rem = oneDay - (now - lastCheck);
     btn.textContent = `Next in ${Math.floor(rem / 3600000)}h ${Math.floor((rem % 3600000) / 60000)}m`;
   }
-  
-  let tasksHtml = '';
-  if (config.tasks && config.tasks.length > 0) {
-    const userClaims = user.taskClaims || {};
-    const now = Date.now();
-    
-    config.tasks.forEach(task => {
-      const isAd = task.type === 'ad_task';
-      const claimData = userClaims[task.id] || { count: 0, lastTime: 0 };
-      
-      let canClaim = true;
-      let btnText = isAd ? 'Watch' : 'Start';
-      
-      // কুলডাউন চেক
-      if (claimData.count >= (task.limit || 1)) {
-        const hoursPassed = (now - claimData.lastTime) / (1000 * 60 * 60);
-        if (hoursPassed < (task.cooldown || 24)) {
-          canClaim = false;
-          btnText = `Wait ${Math.ceil((task.cooldown || 24) - hoursPassed)}h`;
-        } else {
-          // কুলডাউন শেষ, রিসেট
-          claimData.count = 0; 
-        }
-      }
-      
-      tasksHtml += `
-        <div class="task-item">
-          <div class="task-info">
-            <div class="task-icon-wrap" style="background: ${isAd ? '#A855F7' : '#45A6F5'};">
-              ${isAd ? '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' : '<svg class="icon" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z"/></svg>'}
-            </div>
-            <div class="task-text">
-              <h4>${task.title}</h4>
-              <p><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png"/> +${task.reward} RET</p>
-              <p style="font-size: 10px; color: var(--text-sub); margin-top: 2px;">${claimData.count}/${task.limit || 1} completed</p>
-            </div>
-          </div>
-          <button class="task-btn" ${canClaim ? '' : 'disabled'} onclick="${isAd ? `watchAd('${task.id}', '${task.zoneId}', ${task.reward})` : `doLegalTask('${task.id}', '${task.link}', ${task.reward})`}">
-            ${btnText}
-          </button>
-        </div>
-      `;
-    });
-  } else {
-    tasksHtml = '<div style="text-align:center; padding:20px; color:var(--text-sub);">No tasks available right now.</div>';
-  }
-  $('tasksList').innerHTML = tasksHtml;
-}
 
-// Helper: Record task claim
-async function recordTaskClaim(taskId, limit, cooldownHours) {
-  const claimData = (user.taskClaims && user.taskClaims[taskId]) || { count: 0, lastTime: 0 };
-  const newCount = claimData.count + 1;
-  const updateData = { [`taskClaims/${taskId}/count`]: newCount, [`taskClaims/${taskId}/lastTime`]: Date.now() };
-  await update(ref(db, 'users/' + uid), updateData);
+  // Task list
+  const tasks = config.tasks || [];
+  if (tasks.length === 0) {
+    $('tasksList').innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">No tasks available right now.</div>';
+    return;
+  }
+
+  let html = '';
+  const userClaims = user.taskClaims || {};
+
+  tasks.forEach(task => {
+    const isAd = task.type === 'ad_task';
+    const claimData = userClaims[task.id] || { count: 0, lastTime: 0 };
+    let canClaim = true;
+    let btnText = isAd ? 'Watch' : 'Start';
+    let statusText = `${claimData.count}/${task.limit || 1} completed`;
+
+    if (claimData.count >= (task.limit || 1)) {
+      const hoursPassed = (Date.now() - claimData.lastTime) / (1000 * 60 * 60);
+      if (hoursPassed < (task.cooldown || 24)) {
+        canClaim = false;
+        const remain = Math.ceil((task.cooldown || 24) - hoursPassed);
+        btnText = `${remain}h`;
+        statusText = `Cooldown · Next in ${remain}h`;
+      } else {
+        statusText = 'Ready to claim';
+      }
+    }
+
+    const action = isAd
+      ? `watchAd('${esc(task.id)}','${esc(task.zoneId || '')}',${task.reward})`
+      : `doLegalTask('${esc(task.id)}','${esc(task.link || '')}',${task.reward})`;
+
+    html += `
+      <div class="task-item">
+        <div class="task-info">
+          <div class="task-icon-wrap" style="background: ${isAd ? '#A855F7' : '#45A6F5'};">
+            ${isAd
+              ? '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
+              : '<svg class="icon" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z"/></svg>'}
+          </div>
+          <div class="task-text">
+            <h4>${esc(task.title)}</h4>
+            <p><img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png"/> +${task.reward} RET</p>
+            <div class="task-status">${statusText}</div>
+          </div>
+        </div>
+        <button class="task-btn" ${canClaim ? '' : 'disabled'} onclick="${action}">${btnText}</button>
+      </div>
+    `;
+  });
+  $('tasksList').innerHTML = html;
 }
 
 window.claimDailyCheckin = async () => {
   const streak = user.streak || 0;
   const lastCheck = user.lastCheckIn || 0;
-  if (Date.now() - lastCheck < 86400000) { showToast('Already claimed today!'); return; }
+  if (Date.now() - lastCheck < 86400000) { showToast('Already claimed today!', true); return; }
   const reward = [5, 10, 15, 20, 25, 30, 50][streak] || 5;
   await update(ref(db, 'users/' + uid), { balance: (user.balance || 0) + reward, streak: streak + 1, lastCheckIn: Date.now() });
+  user.balance = (user.balance || 0) + reward;
+  user.streak = streak + 1;
+  user.lastCheckIn = Date.now();
   showToast(`Claimed +${reward} RET!`);
   push(ref(db, 'history/' + uid), { type: 'Daily Check-in', amount: reward, date: Date.now() });
+  renderTasks();
 };
 
 window.doLegalTask = async (taskId, link, reward) => {
-  const task = config.tasks.find(t => t.id === taskId);
-  if (!task) return;
-  if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(link); else window.open(link, '_blank');
-  setTimeout(async () => {
-    await update(ref(db, 'users/' + uid), { balance: (user.balance || 0) + reward, totalMined: (user.totalMined || 0) + reward });
-    await recordTaskClaim(taskId, task.limit || 1, task.cooldown || 24);
-    showToast(`Task completed! +${reward} RET`);
-    push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
-  }, 2000);
+  if (claimingTasks.has(taskId)) return;
+  if (!link || !/^https?:\/\//.test(link)) return showToast('Invalid task link', true);
+  claimingTasks.add(taskId);
+  try {
+    if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(link); else window.open(link, '_blank');
+    showToast('Complete the task, reward will be added shortly...');
+    setTimeout(async () => {
+      const task = (config.tasks || []).find(t => t.id === taskId);
+      if (!task) { claimingTasks.delete(taskId); return; }
+      await update(ref(db, 'users/' + uid), {
+        balance: (user.balance || 0) + reward,
+        totalMined: (user.totalMined || 0) + reward
+      });
+      user.balance = (user.balance || 0) + reward;
+      user.totalMined = (user.totalMined || 0) + reward;
+      await recordTaskClaim(taskId, task.limit || 1, task.cooldown || 24);
+      showToast(`Task completed! +${reward} RET`);
+      push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
+      renderTasks();
+      claimingTasks.delete(taskId);
+    }, 3000);
+  } catch (e) {
+    claimingTasks.delete(taskId);
+    showToast('Error: ' + e.message, true);
+  }
 };
+
+// --- 12. MONETAG SDK ---
+function loadMonetagZone(zoneId) {
+  return new Promise((resolve, reject) => {
+    const fnName = 'show_' + zoneId;
+    if (typeof window[fnName] === 'function') return resolve();
+    if (adZoneLoading[zoneId]) {
+      // Already loading — poll
+      const iv = setInterval(() => {
+        if (typeof window[fnName] === 'function') { clearInterval(iv); resolve(); }
+      }, 200);
+      setTimeout(() => { clearInterval(iv); reject(new Error('SDK timeout')); }, 15000);
+      return;
+    }
+    adZoneLoading[zoneId] = true;
+    
+    const script = document.createElement('script');
+    script.src = 'https://libtl.com/sdk.js';
+    script.setAttribute('data-zone', String(zoneId));
+    script.setAttribute('data-sdk', fnName);
+    script.async = true;
+    
+    let done = false;
+    const finish = (ok, err) => {
+      if (done) return;
+      done = true;
+      adZoneLoading[zoneId] = false;
+      if (ok && typeof window[fnName] === 'function') resolve();
+      else reject(err || new Error('SDK function not registered'));
+    };
+    
+    script.onload = () => setTimeout(() => finish(typeof window[fnName] === 'function'), 800);
+    script.onerror = () => finish(false, new Error('SDK script failed to load'));
+    document.head.appendChild(script);
+    setTimeout(() => finish(false, new Error('SDK load timeout')), 15000);
+  });
+}
+
+window.closeAdModal = () => $('adModal').classList.remove('show');
 
 window.watchAd = async (taskId, zoneId, reward) => {
-  // 1. Monetag টেলিগ্রাম SDK দিয়ে অ্যাড দেখানো
-  let adSuccess = false;
-  try {
-    if (typeof window.monetagTgSdk !== 'undefined' && window.monetagTgSdk.createAdHandler) {
-      const adHandler = window.monetagTgSdk.createAdHandler(zoneId);
-      await adHandler(); // প্লেয়ার অ্যাড দেখবে, শেষ হলে প্রমিস রিজলভ হবে
-      adSuccess = true;
-    }
-  } catch (e) { console.log('Monetag TG SDK error:', e); }
+  if (claimingTasks.has(taskId)) return;
+  if (!zoneId || !/^\d+$/.test(String(zoneId))) return showToast('Invalid ad configuration', true);
+  claimingTasks.add(taskId);
   
-  // 2. ফলব্যাক UI (যদি SDK লোড না হয় বা এরর দেয়)
   const modal = $('adModal');
-  modal.classList.add('show');
-  let c = 10; $('adCountdown').textContent = c;
+  const spinner = $('adSpinner');
+  const titleEl = $('adModalTitle');
+  const descEl = $('adModalDesc');
+  const closeBtn = $('adCloseBtn');
   
-  const iv = setInterval(async () => {
-    c--; $('adCountdown').textContent = c;
-    if (c <= 0) {
-      clearInterval(iv); modal.classList.remove('show');
-      await update(ref(db, 'users/' + uid), { balance: (user.balance || 0) + reward, adsToday: (user.adsToday || 0) + 1, totalMined: (user.totalMined || 0) + reward });
-      await recordTaskClaim(taskId, 1, 24); // ডিফল্ট ১ বার, ২৪ ঘণ্টা
-      showToast(`Ad watched! +${reward} RET`);
-      push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
+  spinner.style.display = 'block';
+  closeBtn.style.display = 'none';
+  titleEl.textContent = 'Loading Ad...';
+  descEl.textContent = 'Please wait';
+  modal.classList.add('show');
+  
+  try {
+    await loadMonetagZone(zoneId);
+    
+    titleEl.textContent = 'Opening Ad';
+    descEl.textContent = 'Complete the ad to earn your reward.';
+    
+    const adFn = window['show_' + zoneId];
+    if (typeof adFn !== 'function') throw new Error('Ad function not found');
+    
+    let result;
+    try {
+      result = adFn();
+    } catch (err) {
+      throw new Error('Ad failed to start: ' + err.message);
     }
-  }, 1000);
+    
+    // Await if promise
+    if (result && typeof result.then === 'function') {
+      await result;
+    }
+    
+    // Success
+    modal.classList.remove('show');
+    
+    const task = (config.tasks || []).find(t => t.id === taskId);
+    const limit = task?.limit || 1;
+    const cooldown = task?.cooldown || 24;
+    
+    await update(ref(db, 'users/' + uid), {
+      balance: (user.balance || 0) + reward,
+      adsToday: (user.adsToday || 0) + 1,
+      totalMined: (user.totalMined || 0) + reward
+    });
+    user.balance = (user.balance || 0) + reward;
+    user.adsToday = (user.adsToday || 0) + 1;
+    user.totalMined = (user.totalMined || 0) + reward;
+    
+    await recordTaskClaim(taskId, limit, cooldown);
+    showToast(`+${reward} RET earned!`);
+    push(ref(db, 'history/' + uid), { type: 'Ad Reward', amount: reward, date: Date.now() });
+    renderTasks();
+  } catch (e) {
+    console.error('Ad error:', e);
+    spinner.style.display = 'none';
+    titleEl.textContent = 'Ad Not Available';
+    descEl.textContent = 'Please try again in a moment.';
+    closeBtn.style.display = 'block';
+    showToast('Ad not available. Try again.', true);
+  } finally {
+    claimingTasks.delete(taskId);
+  }
 };
 
-// --- MINERS TAB ---
+// --- 13. MINERS TAB ---
 function renderMinersTab() {
   const bal = user.balance || 0;
   const base = config.levelBase || 25;
@@ -918,7 +1015,7 @@ function renderMinersTab() {
   const nextLvl = currentLvl + 1;
   const neededForNext = (nextLvl * base) - bal;
   $('nextLvlText').textContent = nextLvl;
-  $('lvlNeedText').textContent = `${neededForNext.toFixed(2)} RET to go`;
+  $('lvlNeedText').textContent = `${Math.max(0, neededForNext).toFixed(2)} RET to go`;
   $('lvlProgressFill').style.width = `${Math.min(100, (bal % base) / base * 100)}%`;
   const spd = parseFloat(calcSpeed(currentLvl));
   $('todayPnL').textContent = '+' + calcDaily(spd);
@@ -948,14 +1045,24 @@ function renderMinersTab() {
   $('levelsList').innerHTML = html;
 }
 
-// --- FRIENDS TAB ---
+// --- 14. FRIENDS TAB ---
 function renderFriendsTab() {
   $('profileName').textContent = user.username || 'User';
   $('profileHandle').textContent = '@' + (user.handle || 'user');
   $('profileAvatar').src = user.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
   
+  const badge = $('profileVerifyBadge');
+  if (user.isVerified) {
+    badge.className = 'p-badge green';
+    badge.innerHTML = '<svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg> Verified';
+  } else {
+    badge.className = 'p-badge red';
+    badge.innerHTML = '<svg style="width: 10px; height: 10px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg> Unverified';
+  }
+  
   const botLink = config.botLink || 'https://t.me/ret_mine_bot';
-  $('refLinkDisplay').textContent = `${botLink.replace('https://', '')}?start=ref_${uid}`;
+  const cleanLink = botLink.replace(/^https?:\/\//, '');
+  $('refLinkDisplay').textContent = `${cleanLink}?start=ref_${uid}`;
   
   get(query(ref(db, 'users'), orderByChild('referredBy'), equalTo(uid))).then(snap => {
     if (snap.exists()) {
@@ -966,158 +1073,218 @@ function renderFriendsTab() {
       squadUsers.forEach(u => { pool += (u.totalMined || 0) * 0.10; });
       $('squadPool').textContent = pool.toFixed(3);
       $('squadPoolUsd').textContent = (pool * (config.usdRate || 0.042)).toFixed(2);
+    } else {
+      $('squadTotal').textContent = '0';
+      $('squadQualified').textContent = '0';
+      $('squadPool').textContent = '0.000';
+      $('squadPoolUsd').textContent = '0.00';
     }
   });
 }
 
-window.copyRefLink = () => { navigator.clipboard.writeText('https://' + $('refLinkDisplay').textContent); showToast('Referral link copied!'); };
+window.copyRefLink = () => {
+  navigator.clipboard.writeText('https://' + $('refLinkDisplay').textContent);
+  showToast('Referral link copied!');
+};
 window.shareRefLink = () => {
   const link = 'https://' + $('refLinkDisplay').textContent;
   const text = `Join RET Miner and get 100 RET bonus! ${link}`;
   if (window.Telegram?.WebApp?.openTelegramLink) Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
-  else navigator.share({ title: 'RET Miner', url: link });
+  else if (navigator.share) navigator.share({ title: 'RET Miner', url: link });
 };
 
-// --- WALLET TAB ---
+// --- 15. WALLET TAB ---
 function renderWalletTab() {
-  $('walletBalance').textContent = (user.balance || 0).toFixed(1);
+  $('walletBalance').textContent = fmt(user.balance, 2);
   $('walletUsd').textContent = ((user.balance || 0) * (config.usdRate || 0.042)).toFixed(2);
   
   const tonSec = $('tonWalletSection');
   if (user.tonConnected && user.tonAddress) {
+    const addr = user.tonAddress;
     tonSec.innerHTML = `
-      <div class="ton-left"><div class="ton-icon">TON</div><div class="ton-info"><h4>${user.tonAddress.slice(0, 6)}...${user.tonAddress.slice(-4)}</h4><p>0 RET on-chain</p></div></div>
-      <div style="display: flex; gap: 8px;"><button class="btn-disconnect" onclick="disconnectTon()">Disconnect</button></div>
+      <div class="ton-left">
+        <div class="ton-icon">TON</div>
+        <div class="ton-info">
+          <h4>${esc(addr.slice(0, 6))}…${esc(addr.slice(-4))}</h4>
+          <p>Connected</p>
+        </div>
+      </div>
+      <button class="btn-disconnect" onclick="disconnectTon()">Disconnect</button>
     `;
   } else {
     tonSec.innerHTML = `
-      <div class="ton-left"><div class="ton-icon">TON</div><div class="ton-info"><h4>TON Wallet</h4><p>Not connected</p></div></div>
+      <div class="ton-left">
+        <div class="ton-icon">TON</div>
+        <div class="ton-info">
+          <h4>TON Wallet</h4>
+          <p>Not connected</p>
+        </div>
+      </div>
       <button class="btn-connect" onclick="openTonConnect()">Connect</button>
+    `;
+  }
+  
+  // Verify status card
+  const vc = $('verifyStatusCard');
+  if (user.isVerified) {
+    vc.className = 'card';
+    vc.innerHTML = `
+      <div class="verify-row">
+        <div class="verify-icon" style="background: #E8F8EC; color: var(--green);">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 700;">✅ Verified Account</div>
+          <div style="font-size: 12px; color: var(--text-sub);">Withdrawals are enabled.</div>
+        </div>
+      </div>
+    `;
+  } else {
+    const fee = Number(config.verifyPrice) || 0.05;
+    vc.className = 'card verify-card';
+    vc.innerHTML = `
+      <div class="verify-row">
+        <div class="verify-icon" style="background: #FFF6E5; color: var(--warn);">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+        </div>
+        <div style="flex: 1;">
+          <div style="font-weight: 700;">Unverified</div>
+          <div style="font-size: 12px; color: var(--text-sub);">Verify to enable withdrawals — one-time <b style="color: var(--warn);">${fee} TON</b>.</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="height: 44px; font-size: 14px;" onclick="openVerify()">Verify Now</button>
     `;
   }
 }
 
-// লাইভ পেআউট এবং ডিপোজিট লিস্ট (ডেমো + রিয়েল)
-function renderLiveTx() {
-  get(query(ref(db, 'transactions'), limitToLast(5))).then(snap => {
-    let html = '';
-    // ডেমো ডাটা (শুধু এই লিস্টে দেখাবে)
-    const demo = [
-      { name: 'Va****', type: 'Withdraw', amount: 930, time: 'Just now' },
-      { name: 'H.S**', type: 'Withdraw', amount: 931, time: '1m ago' },
-      { name: 'Mo****', type: 'Deposit', amount: 500, time: '2m ago' }
-    ];
-    
-    demo.forEach(i => {
-      const color = i.type === 'Withdraw' ? 'var(--green)' : 'var(--primary)';
-      const icon = i.type === 'Withdraw' ? '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>' : '<path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>';
-      html += `<div class="history-list-item"><div class="history-info"><div class="history-icon" style="background:#E8F8EC; color:${color}"><svg class="icon" viewBox="0 0 24 24">${icon}</svg></div><div class="history-text"><h4>${i.name}</h4><p>${i.time}</p></div></div><div class="history-amount"><h4 style="color:${color}">${i.amount} RET</h4></div></div>`;
-    });
-    
-    // রিয়েল ডাটা
-    if (snap.exists()) {
-      Object.values(snap.val()).sort((a,b) => b.date - a.date).forEach(tx => {
-        const d = new Date(tx.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        const color = tx.type === 'Withdraw' ? 'var(--green)' : 'var(--primary)';
-        html = `<div class="history-list-item"><div class="history-info"><div class="history-icon" style="background:#E8F8EC; color:${color}"><svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg></div><div class="history-text"><h4>${tx.user}</h4><p>${d}</p></div></div><div class="history-amount"><h4 style="color:${color}">${tx.amount} RET</h4></div></div>` + html;
-      });
-    }
-    $('liveTxList').innerHTML = html;
-  });
-}
-
 function renderHistory() {
   onValue(ref(db, 'history/' + uid), snap => {
-    let historyHtml = '';
+    let html = '';
     if (snap.exists()) {
-      const items = Object.values(snap.val()).sort((a,b) => b.date - a.date).slice(0, 10);
+      const items = Object.values(snap.val()).sort((a,b) => b.date - a.date).slice(0, 15);
       items.forEach(i => {
-        const d = new Date(i.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        historyHtml += `<div class="history-list-item"><div class="history-info"><div class="history-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div><div class="history-text"><h4>${i.type}</h4><p>${d}</p></div></div><div class="history-amount"><h4>${i.amount > 0 ? '+' : ''}${i.amount.toFixed(2)} RET</h4><p><svg style="width:12px; height:12px; fill:var(--green);" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Completed</p></div></div>`;
+        const d = new Date(i.date).toLocaleString();
+        const amtColor = i.amount > 0 ? 'var(--green)' : (i.amount < 0 ? 'var(--red)' : 'var(--text-sub)');
+        html += `<div class="history-list-item"><div class="history-info"><div class="history-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></div><div class="history-text"><h4>${esc(i.type)}</h4><p>${esc(d)}</p></div></div><div class="history-amount"><h4 style="color:${amtColor}">${i.amount > 0 ? '+' : ''}${fmt(i.amount, 2)} RET</h4></div></div>`;
       });
     }
-    $('historyList').innerHTML = historyHtml || '<div style="text-align: center; padding: 20px; color: var(--text-sub);">No history yet.</div>';
+    $('historyList').innerHTML = html || '<div style="text-align: center; padding: 20px; color: var(--text-sub);">No history yet.</div>';
   });
 }
 
-// --- TON পেমেন্ট (ডিপোজিট / ভেরিফিকেশন / কেনা) ---
+// --- 16. TON PAYMENTS ---
 async function sendTonPayment(amountTon, comment) {
   if (!tonConnectUI || !user.tonConnected) {
-    showToast('Connect TON wallet first'); openTonConnect(); return false;
+    showToast('Connect TON wallet first', true);
+    openTonConnect();
+    return false;
+  }
+  if (!config.adminWallet || config.adminWallet === 'UQ...') {
+    showToast('Admin wallet not configured', true);
+    return false;
   }
   try {
     const tx = {
       validUntil: Math.floor(Date.now() / 1000) + 600,
       messages: [{
         address: config.adminWallet,
-        amount: (amountTon * 1e9).toString(), // TON to nanoTON
-        payload: comment // Simplified plain text comment
+        amount: Math.floor(amountTon * 1e9).toString(),
+        payload: new TextEncoder().encode(comment).toString('base64')
       }]
     };
     await tonConnectUI.sendTransaction(tx);
     return true;
   } catch (e) {
     console.error('Payment failed:', e);
-    showToast('Payment cancelled');
+    showToast('Payment cancelled', true);
     return false;
   }
 }
 
-window.openVerify = () => { if (!user.tonConnected) { openTonConnect(); return; } $('verifyModal').classList.add('show'); };
+// --- 17. VERIFICATION ---
+window.openVerify = () => {
+  if (!user.tonConnected) { openTonConnect(); return; }
+  if (user.isVerified) { showToast('Already verified!'); return; }
+  const fee = Number(config.verifyPrice) || 0.05;
+  $('verifyPrice').textContent = fee;
+  $('verifyPriceBtn').textContent = fee;
+  $('verifyModal').classList.add('show');
+};
 window.closeVerify = () => $('verifyModal').classList.remove('show');
 window.payVerify = async () => {
   closeVerify();
-  const success = await sendTonPayment(0.05, 'Account Verification');
+  const fee = Number(config.verifyPrice) || 0.05;
+  const success = await sendTonPayment(fee, 'Account Verification');
   if (success) {
     await update(ref(db, 'users/' + uid), { isVerified: true });
-    await push(ref(db, 'transactions'), { user: user.username, type: 'Deposit', amount: 0.05, date: Date.now(), comment: 'Verification' });
+    user.isVerified = true;
+    await push(ref(db, 'transactions'), { user: user.username, type: 'Deposit', amount: fee, date: Date.now(), comment: 'Verification' });
     await push(ref(db, 'history/' + uid), { type: 'Account Verified', amount: 0, date: Date.now() });
     showToast('Account Verified!');
     renderWalletTab();
+    renderFriendsTab();
   }
 };
 
-window.openBuyRET = () => { if (!user.tonConnected) { openTonConnect(); return; } $('buyRate').textContent = (1 / config.retPriceTon).toFixed(0); $('buyModal').classList.add('show'); };
+// --- 18. BUY RET ---
+window.openBuyRET = () => {
+  if (!user.tonConnected) { showToast('Connect TON first', true); openTonConnect(); return; }
+  $('buyRate').textContent = Math.round(1 / (config.retPriceTon || 0.001));
+  $('buyModal').classList.add('show');
+};
 window.closeBuy = () => $('buyModal').classList.remove('show');
 window.calcBuyCost = () => {
   const amt = parseFloat($('buyAmount').value) || 0;
-  $('buyCost').textContent = (amt * config.retPriceTon).toFixed(4);
+  $('buyCost').textContent = (amt * (config.retPriceTon || 0.001)).toFixed(4);
 };
 window.confirmBuy = async () => {
   const amt = parseFloat($('buyAmount').value);
-  if (!amt || amt <= 0) return showToast('Invalid amount');
-  const costTon = amt * config.retPriceTon;
+  if (!amt || amt <= 0) return showToast('Invalid amount', true);
+  const costTon = amt * (config.retPriceTon || 0.001);
   closeBuy();
   const success = await sendTonPayment(costTon, `Buy ${amt} RET`);
   if (success) {
     await update(ref(db, 'users/' + uid), { balance: (user.balance || 0) + amt });
+    user.balance = (user.balance || 0) + amt;
     await push(ref(db, 'transactions'), { user: user.username, type: 'Deposit', amount: amt, date: Date.now(), comment: 'Buy RET' });
     await push(ref(db, 'history/' + uid), { type: 'Bought RET', amount: amt, date: Date.now() });
     showToast(`Bought ${amt} RET!`);
+    renderWalletTab();
   }
 };
 
-// --- WITHDRAW ---
+// --- 19. WITHDRAW ---
 window.openWithdraw = () => {
-  if (!user.tonConnected) { showToast('Connect TON first'); return; }
-  if ((user.balance || 0) < (config.withdrawMin || 500)) { showToast(`Min withdraw is ${config.withdrawMin || 500} RET`); return; }
-  $('wdMin').textContent = config.withdrawMin || 500;
+  if (!user.tonConnected) { showToast('Connect TON wallet first', true); openTonConnect(); return; }
+  if (!user.isVerified) { showToast('Verify account to withdraw', true); openVerify(); return; }
+  const min = Number(config.withdrawMin) || 500;
+  if ((user.balance || 0) < min) { showToast(`Min withdraw is ${min} RET`, true); return; }
+  $('wdMin').textContent = min;
   $('withdrawModal').classList.add('show');
 };
 window.closeWithdraw = () => $('withdrawModal').classList.remove('show');
 window.confirmWithdraw = async () => {
   const amt = parseFloat($('wdAmount').value);
-  if (isNaN(amt) || amt <= 0) return showToast('Invalid amount');
-  if (amt > (user.balance || 0)) return showToast('Insufficient balance');
-  if (amt < (config.withdrawMin || 500)) return showToast(`Min ${config.withdrawMin} RET`);
+  const min = Number(config.withdrawMin) || 500;
+  if (isNaN(amt) || amt <= 0) return showToast('Invalid amount', true);
+  if (amt > (user.balance || 0)) return showToast('Insufficient balance', true);
+  if (amt < min) return showToast(`Minimum ${min} RET`, true);
+  if (!user.isVerified) { closeWithdraw(); openVerify(); return; }
   
-  await update(ref(db, 'users/' + uid), { balance: user.balance - amt });
-  await push(ref(db, 'withdrawals'), { uid, amount: amt, status: 'pending', createdAt: Date.now(), tonAddress: user.tonAddress });
-  await push(ref(db, 'history/' + uid), { type: 'Withdraw Request', amount: -amt, date: Date.now() });
-  closeWithdraw(); showToast('Withdrawal requested!');
+  try {
+    await update(ref(db, 'users/' + uid), { balance: user.balance - amt });
+    user.balance = user.balance - amt;
+    await push(ref(db, 'withdrawals'), { uid, amount: amt, status: 'pending', createdAt: Date.now(), tonAddress: user.tonAddress });
+    await push(ref(db, 'history/' + uid), { type: 'Withdraw Request', amount: -amt, date: Date.now() });
+    closeWithdraw();
+    showToast('Withdrawal requested!');
+    renderWalletTab();
+  } catch (e) {
+    showToast('Failed: ' + e.message, true);
+  }
 };
 
-// --- START ---
+// --- 20. START ---
 init();
 </script>
 </body>
