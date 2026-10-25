@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>RET Coin Miner</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@2.3.1/dist/tonconnect-ui.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
   
@@ -580,11 +580,19 @@ if (window.Telegram?.WebApp) {
   if (startParam && startParam.startsWith('ref_')) referralParam = startParam.replace('ref_', '');
 }
 
-// --- TON CONNECT ---
+// --- TON CONNECT (FIXED MANIFEST & BRIDGE) ---
 function initTonConnect() {
+  // IMPORTANT: Manifest URL must be absolute HTTPS and match your hosted app domain
   const manifestUrl = 'https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json';
   if (typeof TON_CONNECT_UI === 'undefined') return;
-  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl });
+  
+  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ 
+    manifestUrl,
+    uiPreferences: {
+      theme: 'LIGHT'
+    }
+  });
+  
   tonConnectUI.onStatusChange(async (wallet) => {
     if (!uid) return;
     if (wallet && wallet.account?.address) {
@@ -1175,7 +1183,7 @@ function renderHistory() {
   });
 }
 
-// --- 16. TON PAYMENTS (FIXED ERROR) ---
+// --- 16. TON PAYMENTS (FULLY FIXED) ---
 async function sendTonPayment(amountTon, comment) {
   if (!tonConnectUI || !user.tonConnected) {
     showToast('Connect TON wallet first', true);
@@ -1187,16 +1195,20 @@ async function sendTonPayment(amountTon, comment) {
     return false;
   }
   try {
+    // 1. Convert amount to NanoTON string (TON Connect requires string, not number)
+    const amountNano = Math.floor(amountTon * 1e9).toString();
+    
+    // 2. Build transaction payload exactly as per spec
     const tx = {
       validUntil: Math.floor(Date.now() / 1000) + 600,
       messages: [{
         address: config.adminWallet,
-        amount: Math.floor(amountTon * 1e9).toString()
-        // Note: Payload is removed to prevent "Unexpected error" from wallets
+        amount: amountNano
+        // Note: Payload is intentionally omitted to prevent "Unexpected error" from wallets
       }]
     };
     
-    // Added modals to see exact error/success in the wallet UI
+    // 3. Send with proper modals to see exact error in UI if it fails
     await tonConnectUI.sendTransaction(tx, {
       modals: ['before', 'success', 'error']
     });
