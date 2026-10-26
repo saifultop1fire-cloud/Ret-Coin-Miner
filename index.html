@@ -51,7 +51,7 @@
 
   .card { background: var(--card-bg); border-radius: 20px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid var(--border); }
 
-  /* MINE (Distinct Design) */
+  /* MINE */
   .mine-card { display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden; padding: 24px 16px; background: linear-gradient(180deg, #ffffff 0%, #f4f8fb 100%); border: 2px solid var(--primary-light); box-shadow: 0 10px 30px rgba(52, 152, 219, 0.1); }
   .mine-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; }
   .mine-title { font-size: 14px; color: var(--text-sub); font-weight: 500; }
@@ -211,7 +211,6 @@
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .toast.error { background: rgba(231, 76, 60, 0.95); }
   
-  /* Enhanced Loading Screen */
   .loading-screen { position: fixed; inset: 0; background: #fff; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
   .loading-steps { margin-top: 30px; width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 16px; }
   .load-step { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; color: var(--text-sub); transition: 0.3s; }
@@ -238,7 +237,6 @@
   <p style="color: var(--text-sub); margin-top: 8px;">This app can only be accessed inside Telegram.</p>
 </div>
 
-<!-- ENHANCED LOADING SCREEN -->
 <div id="loading" class="loading-screen">
   <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width: 90px; height: 90px; margin-bottom: 20px; animation: float 2s infinite; filter: drop-shadow(0 10px 20px rgba(52,152,219,0.3));" alt="RET" />
   <div style="font-size: 24px; font-weight: 800; color: var(--primary);">RET Miner</div>
@@ -539,7 +537,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, set, update, push, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
@@ -694,7 +692,6 @@ async function simulateLoading() {
 }
 
 async function init() {
-  // ১. কনফিগ লোড করা
   onValue(ref(db, 'config'), (snap) => {
     if (snap.exists()) {
       config = { ...config, ...snap.val() };
@@ -702,7 +699,6 @@ async function init() {
     }
   });
 
-  // ২. Telegram ID ব্যবহার করা (স্থায়ী অ্যাকাউন্টের জন্য)
   const tg = getTelegramUser();
   uid = String(tg.id); 
   
@@ -711,35 +707,66 @@ async function init() {
     if (snap.exists()) {
       user = snap.val();
     } else {
-      user = {
-        balance: 0, unclaimed: 0, level: 1, totalMined: 0, adsToday: 0,
-        streak: 0, lastCheckIn: 0,
-        tonConnected: false, tonAddress: '', isVerified: false,
-        username: tg.name, handle: tg.username, photo: tg.photo,
-        referredBy: referralParam || null, createdAt: Date.now(),
-        lastSyncTime: Date.now(),
-        taskClaims: {},
-        referrals: 0,
-        verifiedReferrals: 0
-      };
-      
-      // নতুন ইউজার হলে ডাটাবেসে সেভ করা
-      await set(userRef, user);
-
-      // রেফারেল হ্যান্ডলিং: কেউ লিংকে ক্লিক করলে সাথে সাথে রেফারার এর কাউন্ট বাড়বে
-      if (referralParam && referralParam !== uid) {
-        try {
-          await runTransaction(ref(db, 'users/' + referralParam), (refUser) => {
-            if (refUser) {
-              refUser.referrals = (refUser.referrals || 0) + 1;
+      // ==========================================
+      // MIGRATION SYSTEM: পুরানো ডাটা খোঁজা হচ্ছে
+      // ==========================================
+      let oldData = null;
+      try {
+        const allUsersSnap = await get(ref(db, 'users'));
+        if (allUsersSnap.exists()) {
+          const allUsers = allUsersSnap.val();
+          for (const [oldUid, uData] of Object.entries(allUsers)) {
+            // আগের কোডে handle ছিল telegram username, আর username ছিল full name
+            if (uData.handle === tg.username || (uData.username === tg.name && uData.handle === 'user')) {
+              // যদি পুরানো ডাটা পাওয়া যায়
+              if (!uData.id || uData.id !== tg.id) {
+                oldData = uData;
+                // পুরানো ডাটা নতুন টেলিগ্রাম আইডিতে কপি করা
+                const mergedUser = { ...uData, id: tg.id, username: tg.name, handle: tg.username, photo: tg.photo };
+                await set(userRef, mergedUser);
+                user = mergedUser;
+                showToast('Old account restored!');
+                // পুরানো নোড ডিলিট করে দেওয়া যাতে পরবর্তীতে ঝামেলা না হয়
+                // await remove(ref(db, 'users/' + oldUid)); 
+                break;
+              }
             }
-            return refUser;
-          });
-          // রেফারার কে নোটিফিকেশন পাঠানো (যদি টোকেন থাকে)
-          if(config.botToken) {
-             sendBotMessage(referralParam, `🎉 <b>New Friend Joined!</b>\nSomeone joined using your referral link.`);
           }
-        } catch(e) { console.error("Referral transaction failed", e); }
+        }
+      } catch(e) { console.error("Migration error", e); }
+
+      if (!oldData) {
+        // যদি পুরানো ডাটা না পাওয়া যায়, নতুন ইউজার তৈরি হবে
+        user = {
+          balance: 0, unclaimed: 0, level: 1, totalMined: 0, adsToday: 0,
+          streak: 0, lastCheckIn: 0,
+          tonConnected: false, tonAddress: '', isVerified: false,
+          username: tg.name, handle: tg.username, photo: tg.photo,
+          referredBy: referralParam || null, createdAt: Date.now(),
+          lastSyncTime: Date.now(),
+          taskClaims: {},
+          referrals: 0,
+          verifiedReferrals: 0,
+          referredUsers: {} // নতুন ম্যাপ যোগ করা হলো
+        };
+        await set(userRef, user);
+
+        // রেফারেল হ্যান্ডলিং
+        if (referralParam && referralParam !== uid) {
+          try {
+            await runTransaction(ref(db, 'users/' + referralParam), (refUser) => {
+              if (refUser) {
+                refUser.referrals = (refUser.referrals || 0) + 1;
+                if (!refUser.referredUsers) refUser.referredUsers = {};
+                refUser.referredUsers[uid] = { username: tg.name, handle: tg.username, isVerified: false, totalMined: 0 };
+              }
+              return refUser;
+            });
+            if(config.botToken) {
+               sendBotMessage(referralParam, `🎉 <b>New Friend Joined!</b>\nSomeone joined using your referral link.`);
+            }
+          } catch(e) { console.error("Referral transaction failed", e); }
+        }
       }
     }
 
@@ -848,6 +875,11 @@ window.claimMining = async () => {
       level: calcLevel(newBal)
     });
     
+    // রেফারারের কমিশন ট্র্যাকিং
+    if (user.referredBy) {
+        await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (mined) => (mined || 0) + amt);
+    }
+
     user.balance = newBal;
     user.unclaimed = 0;
     user.lastSyncTime = Date.now();
@@ -988,6 +1020,11 @@ window.doLegalTask = async (taskId, link, reward) => {
       });
       user.balance = (user.balance || 0) + reward;
       user.totalMined = (user.totalMined || 0) + reward;
+      
+      if (user.referredBy) {
+          await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (mined) => (mined || 0) + reward);
+      }
+
       await recordTaskClaim(taskId, task.limit || 1, task.cooldown || 24);
       showToast(`Task completed! +${reward} RET`);
       push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
@@ -1097,6 +1134,10 @@ window.watchAd = async (taskId, zoneId, reward) => {
     user.balance = (user.balance || 0) + reward;
     user.adsToday = (user.adsToday || 0) + 1;
     user.totalMined = (user.totalMined || 0) + reward;
+
+    if (user.referredBy) {
+        await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (mined) => (mined || 0) + reward);
+    }
     
     await recordTaskClaim(taskId, limit, cooldown);
     showToast(`+${reward} RET earned!`);
@@ -1146,7 +1187,7 @@ function renderMinersTab() {
   $('levelsList').innerHTML = html;
 }
 
-// --- 13. FRIENDS TAB (REFERRAL LOGIC UPDATED) ---
+// --- 13. FRIENDS TAB (REFERRAL LOGIC WITHOUT INDEX) ---
 function renderFriendsTab() {
   $('profileName').textContent = user.username || 'User';
   $('profileHandle').textContent = '@' + (user.handle || 'user');
@@ -1165,44 +1206,30 @@ function renderFriendsTab() {
   const appShort = config.appShortName || 'app';
   $('refLinkDisplay').textContent = `t.me/${botUser}/${appShort}?startapp=ref_${uid}`;
   
-  get(query(ref(db, 'users'), orderByChild('referredBy'), equalTo(uid))).then(snap => {
-    if (snap.exists()) {
-      const squadUsers = Object.values(snap.val());
-      $('squadTotal').textContent = squadUsers.length;
-      const verifiedCount = squadUsers.filter(u => u.isVerified).length;
-      $('squadQualified').textContent = verifiedCount;
-      
-      let pool = 0;
-      squadUsers.forEach(u => {
-        const rate = u.isVerified ? 0.05 : 0.01;
-        pool += (u.totalMined || 0) * rate;
-      });
-      $('squadPool').textContent = pool.toFixed(3);
-      $('squadPoolUsd').textContent = (pool * (config.usdRate || 0.042)).toFixed(2);
-      
-      const claimBtn = $('claimSquadBtn');
-      if (pool > 0) {
-         claimBtn.disabled = false;
-         claimBtn.textContent = `Claim ${pool.toFixed(2)} RET`;
-      } else {
-         claimBtn.disabled = true;
-         claimBtn.textContent = 'Nothing to claim yet';
-      }
-    } else {
-      $('squadTotal').textContent = user.referrals || '0'; // Fallback to count
-      $('squadQualified').textContent = user.verifiedReferrals || '0';
-      $('squadPool').textContent = '0.000';
-      $('squadPoolUsd').textContent = '0.00';
-      const claimBtn = $('claimSquadBtn');
-      claimBtn.disabled = true;
-      claimBtn.textContent = 'Nothing to claim yet';
-    }
-  }).catch(e => {
-    console.error("Query failed. Make sure indexOn is set in rules.", e);
-    // Fallback display if query fails
-    $('squadTotal').textContent = user.referrals || '0';
-    $('squadQualified').textContent = user.verifiedReferrals || '0';
+  // Rules চেঞ্জ না করেই সরাসরি user.referredUsers থেকে ডাটা রিড করা হচ্ছে
+  const squadUsersMap = user.referredUsers || {};
+  const squadUsers = Object.entries(squadUsersMap).map(([id, data]) => ({ id, ...data }));
+  
+  $('squadTotal').textContent = squadUsers.length;
+  const verifiedCount = squadUsers.filter(u => u.isVerified).length;
+  $('squadQualified').textContent = verifiedCount;
+  
+  let pool = 0;
+  squadUsers.forEach(u => {
+    const rate = u.isVerified ? 0.05 : 0.01;
+    pool += (u.totalMined || 0) * rate;
   });
+  $('squadPool').textContent = pool.toFixed(3);
+  $('squadPoolUsd').textContent = (pool * (config.usdRate || 0.042)).toFixed(2);
+  
+  const claimBtn = $('claimSquadBtn');
+  if (pool > 0) {
+     claimBtn.disabled = false;
+     claimBtn.textContent = `Claim ${pool.toFixed(2)} RET`;
+  } else {
+     claimBtn.disabled = true;
+     claimBtn.textContent = 'Nothing to claim yet';
+  }
 }
 
 window.claimSquadCommission = async () => {
@@ -1210,11 +1237,20 @@ window.claimSquadCommission = async () => {
   if (!amt || amt <= 0) return;
   if(!confirm(`Claim ${amt} RET from squad commission?`)) return;
   try {
+    // ১. ব্যালেন্স যোগ করা
     await update(ref(db, 'users/' + uid), { 
        balance: (user.balance || 0) + amt,
        lastCommissionClaim: Date.now()
     });
     user.balance = (user.balance || 0) + amt;
+    
+    // ২. ক্লেইম করার পর referredUsers দের totalMined জিরো করে দেওয়া, যাতে বারবার ক্লেইম না করা যায়
+    const updates = {};
+    Object.keys(user.referredUsers || {}).forEach(refId => {
+       updates[`referredUsers/${refId}/totalMined`] = 0;
+    });
+    await update(ref(db, 'users/' + uid), updates);
+
     showToast(`Claimed ${amt} RET!`);
     push(ref(db, 'history/' + uid), { type: 'Squad Commission', amount: amt, date: Date.now() });
     updateGlobalUI();
@@ -1241,7 +1277,7 @@ function renderWalletTab() {
   
   const tonSec = $('tonWalletSection');
   if (user.tonConnected && user.tonAddress) {
-    const addr = rawToFriendly(user.tonAddress); // FIX: Show user-friendly address
+    const addr = rawToFriendly(user.tonAddress); 
     tonSec.innerHTML = `
       <div class="ton-left">
         <div class="ton-icon">TON</div>
@@ -1379,22 +1415,19 @@ window.payVerify = async () => {
     await update(ref(db, 'users/' + uid), { isVerified: true });
     user.isVerified = true;
     
-    // Referral Bonus Logic Fixed!
     if (user.referredBy && !user.verifiedBonusGiven) {
        try {
-           // ১. রেফারারের ব্যালেন্স ১০০ RET বাড়ানো
            await runTransaction(ref(db, 'users/' + user.referredBy + '/balance'), (bal) => (bal || 0) + 100);
-           // ২. রেফারারের ভেরিফাইড কাউন্ট বাড়ানো
            await runTransaction(ref(db, 'users/' + user.referredBy), (refUser) => {
                if (refUser) {
                    refUser.verifiedReferrals = (refUser.verifiedReferrals || 0) + 1;
+                   if (refUser.referredUsers && refUser.referredUsers[uid]) {
+                       refUser.referredUsers[uid].isVerified = true;
+                   }
                }
                return refUser;
            });
-           // ৩. সঠিক পাথে হিস্ট্রি সেভ করা
            await push(ref(db, 'history/' + user.referredBy), { type: 'Referral Bonus (Verified Friend)', amount: 100, date: Date.now() });
-           
-           // ৪. রেফারার কে নোটিফিকেশন পাঠানো
            if(config.botToken) {
                sendBotMessage(user.referredBy, `🎉 <b>Referral Verified!</b>\nYour friend verified their account. You got <b>+100 RET</b> bonus!`);
            }
