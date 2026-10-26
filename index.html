@@ -483,7 +483,7 @@
   </div>
 </div>
 
-<!-- WITHDRAW MODAL (UPDATED) -->
+<!-- WITHDRAW MODAL -->
 <div id="withdrawModal" class="modal">
   <div class="modal-box">
     <h3 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;">Withdraw RET</h3>
@@ -539,10 +539,8 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, onValue, set, update, push, get, query, orderByChild, equalTo, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// --- 1. SECURITY & CONSTANTS ---
 const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
 if (!isTelegram && !isLocal) {
@@ -562,9 +560,7 @@ const firebaseConfig = {
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const auth = getAuth(app);
 
-// --- 2. STATE ---
 let uid = null;
 let user = {};
 let config = {
@@ -574,7 +570,10 @@ let config = {
   retPriceTon: 0.001,
   verifyPrice: 0.05,
   minClaimAmount: 0.10,
-  tasks: []
+  tasks: [],
+  botToken: "",
+  botUsername: "ret_mine_bot",
+  appShortName: "app"
 };
 let tonConnectUI = null;
 let localUnclaimed = 0;
@@ -583,7 +582,7 @@ const claimingTasks = new Set();
 const adZoneLoading = {};
 let isClaimingMining = false;
 
-// --- 3. HELPERS ---
+// --- HELPERS ---
 const $ = id => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = (n, d = 2) => (Number(n) || 0).toFixed(d);
@@ -599,13 +598,46 @@ const calcLevel = (bal) => Math.max(1, Math.floor((Number(bal) || 0) / (config.l
 const calcSpeed = (lvl) => (0.5 + lvl * 0.03).toFixed(2);
 const calcDaily = (spd) => (parseFloat(spd) * (config.miningRate || 0.000011) * 86400).toFixed(2);
 
-// --- 4. TELEGRAM ---
+// TON Address Formatter (Fixes Raw Format to User-Friendly)
+function rawToFriendly(raw) {
+  if(!raw || !raw.includes(':')) return raw;
+  try {
+    const [wc, hash] = raw.split(':');
+    const tag = 0x51; // non-bounceable
+    const bytes = new Uint8Array(36);
+    bytes[0] = tag;
+    bytes[1] = parseInt(wc, 10);
+    for(let i=0; i<32; i++) bytes[2+i] = parseInt(hash.substr(i*2, 2), 16);
+    const crcTable = [];
+    for(let i=0; i<256; i++){ let c=i; for(let j=0; j<8; j++) c = c&1 ? 0x82f63b78 ^ (c>>>1) : c>>>1; crcTable[i]=c>>>0; }
+    let crc = 0;
+    for(let i=0; i<34; i++){ crc = (crc >>> 8) ^ crcTable[(crc ^ bytes[i]) & 0xFF]; }
+    crc = (~crc) >>> 0;
+    bytes[34] = crc & 0xFF;
+    bytes[35] = (crc >>> 8) & 0xFF;
+    const base64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_');
+    return base64;
+  } catch(e) { return raw; }
+}
+
+// Bot Notifications
+async function sendBotMessage(chatId, text) {
+  if(!chatId || !config.botToken) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${config.botToken}/sendMessage`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ chat_id: chatId, text: text, parse_mode: 'HTML' })
+    });
+  } catch(e) { console.error(e); }
+}
+
+// --- TELEGRAM ---
 function getTelegramUser() {
   if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
     const u = Telegram.WebApp.initDataUnsafe.user;
-    return { name: (u.first_name + ' ' + (u.last_name || '')).trim(), username: u.username || 'user', photo: u.photo_url || '' };
+    return { id: u.id, name: (u.first_name + ' ' + (u.last_name || '')).trim(), username: u.username || 'user', photo: u.photo_url || '' };
   }
-  return { name: 'Test User', username: 'testuser', photo: '' };
+  return { id: 'test123', name: 'Test User', username: 'testuser', photo: '' };
 }
 if (window.Telegram?.WebApp) {
   Telegram.WebApp.ready();
@@ -614,7 +646,7 @@ if (window.Telegram?.WebApp) {
   if (startParam && startParam.startsWith('ref_')) referralParam = startParam.replace('ref_', '');
 }
 
-// --- 5. TON CONNECT ---
+// --- TON CONNECT ---
 function initTonConnect() {
   const manifestUrl = 'https://saifultop1fire-cloud.github.io/Ret-Coin-Miner/tonconnect-manifest.json';
   if (typeof TON_CONNECT_UI === 'undefined') return;
@@ -633,7 +665,7 @@ function initTonConnect() {
 window.openTonConnect = async () => { if (tonConnectUI) await tonConnectUI.openModal(); };
 window.disconnectTon = async () => { if (tonConnectUI) { await tonConnectUI.disconnect(); showToast('TON Wallet Disconnected'); } };
 
-// --- 6. MINING ENGINE ---
+// --- MINING ENGINE ---
 function calcUnclaimed() {
   const base = Number(user.unclaimed) || 0;
   const lastSync = user.lastSyncTime || Date.now();
@@ -643,34 +675,26 @@ function calcUnclaimed() {
   return base + elapsed * spd * (config.miningRate || 0.000011);
 }
 
-// --- 7. LOADING & INIT ---
+// --- LOADING & INIT ---
 async function simulateLoading() {
   const sleep = ms => new Promise(r => setTimeout(r, ms));
-  
-  // Step 1
-  await sleep(800);
-  $('step-1').classList.remove('active');
-  $('step-1').classList.add('done');
+  await sleep(600);
+  $('step-1').classList.remove('active'); $('step-1').classList.add('done');
   $('step-1').querySelector('.load-icon').innerHTML = '<svg viewBox="0 0 24 24" style="fill:var(--green); width: 24px; height: 24px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
-  
-  // Step 2
   $('step-2').classList.add('active');
   $('step-2').querySelector('.load-icon').innerHTML = '<div class="loading-spinner" style="width: 20px; height: 20px; border-width: 3px; margin:0;"></div>';
-  await sleep(1000);
-  $('step-2').classList.remove('active');
-  $('step-2').classList.add('done');
+  await sleep(800);
+  $('step-2').classList.remove('active'); $('step-2').classList.add('done');
   $('step-2').querySelector('.load-icon').innerHTML = '<svg viewBox="0 0 24 24" style="fill:var(--green); width: 24px; height: 24px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
-  
-  // Step 3
   $('step-3').classList.add('active');
   $('step-3').querySelector('.load-icon').innerHTML = '<div class="loading-spinner" style="width: 20px; height: 20px; border-width: 3px; margin:0;"></div>';
-  await sleep(800);
-  $('step-3').classList.remove('active');
-  $('step-3').classList.add('done');
+  await sleep(600);
+  $('step-3').classList.remove('active'); $('step-3').classList.add('done');
   $('step-3').querySelector('.load-icon').innerHTML = '<svg viewBox="0 0 24 24" style="fill:var(--green); width: 24px; height: 24px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
 }
 
 async function init() {
+  // ১. কনফিগ লোড করা
   onValue(ref(db, 'config'), (snap) => {
     if (snap.exists()) {
       config = { ...config, ...snap.val() };
@@ -678,51 +702,62 @@ async function init() {
     }
   });
 
-  try { await signInAnonymously(auth); } catch (e) {
-    showToast('Auth Error', true);
-    $('loading').style.display = 'none';
-    return;
-  }
+  // ২. Telegram ID ব্যবহার করা (স্থায়ী অ্যাকাউন্টের জন্য)
+  const tg = getTelegramUser();
+  uid = String(tg.id); 
+  
+  const userRef = ref(db, 'users/' + uid);
+  onValue(userRef, async (snap) => {
+    if (snap.exists()) {
+      user = snap.val();
+    } else {
+      user = {
+        balance: 0, unclaimed: 0, level: 1, totalMined: 0, adsToday: 0,
+        streak: 0, lastCheckIn: 0,
+        tonConnected: false, tonAddress: '', isVerified: false,
+        username: tg.name, handle: tg.username, photo: tg.photo,
+        referredBy: referralParam || null, createdAt: Date.now(),
+        lastSyncTime: Date.now(),
+        taskClaims: {},
+        referrals: 0,
+        verifiedReferrals: 0
+      };
+      
+      // নতুন ইউজার হলে ডাটাবেসে সেভ করা
+      await set(userRef, user);
 
-  onAuthStateChanged(auth, async (u) => {
-    if (!u) return;
-    uid = u.uid;
-    const userRef = ref(db, 'users/' + uid);
-    onValue(userRef, async (snap) => {
-      if (snap.exists()) {
-        user = snap.val();
-      } else {
-        const tg = getTelegramUser();
-        user = {
-          balance: 0, unclaimed: 0, level: 1, totalMined: 0, adsToday: 0,
-          streak: 0, lastCheckIn: 0,
-          tonConnected: false, tonAddress: '', isVerified: false,
-          username: tg.name, handle: tg.username, photo: tg.photo,
-          referredBy: referralParam || null, createdAt: Date.now(),
-          lastSyncTime: Date.now(),
-          taskClaims: {}
-        };
-        await set(userRef, user);
-        // Note: 100 RET bonus is NOT given here. It is given upon verification.
+      // রেফারেল হ্যান্ডলিং: কেউ লিংকে ক্লিক করলে সাথে সাথে রেফারার এর কাউন্ট বাড়বে
+      if (referralParam && referralParam !== uid) {
+        try {
+          await runTransaction(ref(db, 'users/' + referralParam), (refUser) => {
+            if (refUser) {
+              refUser.referrals = (refUser.referrals || 0) + 1;
+            }
+            return refUser;
+          });
+          // রেফারার কে নোটিফিকেশন পাঠানো (যদি টোকেন থাকে)
+          if(config.botToken) {
+             sendBotMessage(referralParam, `🎉 <b>New Friend Joined!</b>\nSomeone joined using your referral link.`);
+          }
+        } catch(e) { console.error("Referral transaction failed", e); }
       }
-      updateGlobalUI();
-      renderMineTab();
-      renderMinersTab();
-      renderFriendsTab();
-      renderWalletTab();
-      renderHistory();
-    });
-    
-    // Run loading animation then show app
-    await simulateLoading();
-    $('loading').style.display = 'none';
-    $('header').style.display = 'flex';
-    switchTab('mine');
-    if (!tonConnectUI) initTonConnect();
+    }
+
+    updateGlobalUI();
+    renderMineTab();
+    renderMinersTab();
+    renderFriendsTab();
+    renderWalletTab();
+    renderHistory();
   });
+  
+  await simulateLoading();
+  $('loading').style.display = 'none';
+  $('header').style.display = 'flex';
+  switchTab('mine');
+  if (!tonConnectUI) initTonConnect();
 }
 
-// --- 8. GLOBAL UI ---
 function updateGlobalUI() {
   const tg = getTelegramUser();
   $('userAvatar').src = user.photo || tg.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
@@ -742,7 +777,7 @@ window.switchTab = (tabId) => {
   if (tabId === 'mine') renderMineTab();
 };
 
-// --- 9. MINE TAB ---
+// --- MINE TAB ---
 function renderMineTab() {
   const lvl = calcLevel(user.balance || 0);
   const spd = calcSpeed(lvl);
@@ -758,10 +793,8 @@ function updateMineProgress() {
   const amt = localUnclaimed || 0;
   $('unclaimedAmount').textContent = amt.toFixed(5);
   $('unclaimedUsd').textContent = (amt * (config.usdRate || 0.042)).toFixed(4);
-
   const minClaim = Number(config.minClaimAmount) || 0.10;
   const btn = $('claimBtn');
-  
   if (isClaimingMining) {
     btn.textContent = 'Processing...';
     btn.disabled = true;
@@ -789,30 +822,24 @@ setInterval(async () => {
   } catch (e) { /* silent */ }
 }, 10000);
 
-// Mining Claim (With Ad integration)
 window.claimMining = async () => {
   if (isClaimingMining) return;
   const amt = calcUnclaimed();
   const minClaim = Number(config.minClaimAmount) || 0.10;
   if (amt < minClaim) return showToast(`Minimum ${minClaim} RET needed`, true);
   
-  // Check if there is an ad task configured
   const adTask = (config.tasks || []).find(t => t.type === 'ad_task');
-  
   if (adTask && adTask.zoneId) {
     isClaimingMining = true;
     updateMineProgress();
-    
-    // Use the existing watchAd logic but override the reward part
     const success = await executeAd(adTask.zoneId);
     if (!success) {
       isClaimingMining = false;
       updateMineProgress();
-      return; // Don't claim if ad failed or cancelled
+      return;
     }
   }
 
-  // Proceed to claim
   const newBal = (user.balance || 0) + amt;
   try {
     await update(ref(db, 'users/' + uid), {
@@ -839,7 +866,7 @@ window.claimMining = async () => {
   }
 };
 
-// --- 10. TASKS ---
+// --- TASKS ---
 async function recordTaskClaim(taskId, limit, cooldownHours) {
   const current = (user.taskClaims && user.taskClaims[taskId]) || { count: 0, lastTime: 0 };
   const now = Date.now();
@@ -915,9 +942,7 @@ function renderTasks() {
       <div class="task-item">
         <div class="task-info">
           <div class="task-icon-wrap" style="background: ${isAd ? '#9b59b6' : '#3498db'};">
-            ${isAd
-              ? '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
-              : '<svg class="icon" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z"/></svg>'}
+            ${isAd ? '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>' : '<svg class="icon" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z"/></svg>'}
           </div>
           <div class="task-text">
             <h4>${esc(task.title)}</h4>
@@ -1136,9 +1161,9 @@ function renderFriendsTab() {
     badge.innerHTML = '<svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg> Unverified';
   }
   
-  const botLink = config.botLink || 'https://t.me/ret_mine_bot';
-  const cleanLink = botLink.replace(/^https?:\/\//, '');
-  $('refLinkDisplay').textContent = `${cleanLink}?start=ref_${uid}`;
+  const botUser = config.botUsername || 'ret_mine_bot';
+  const appShort = config.appShortName || 'app';
+  $('refLinkDisplay').textContent = `t.me/${botUser}/${appShort}?startapp=ref_${uid}`;
   
   get(query(ref(db, 'users'), orderByChild('referredBy'), equalTo(uid))).then(snap => {
     if (snap.exists()) {
@@ -1147,7 +1172,6 @@ function renderFriendsTab() {
       const verifiedCount = squadUsers.filter(u => u.isVerified).length;
       $('squadQualified').textContent = verifiedCount;
       
-      // Commission calculation: 1% if unverified, 5% if verified
       let pool = 0;
       squadUsers.forEach(u => {
         const rate = u.isVerified ? 0.05 : 0.01;
@@ -1163,34 +1187,28 @@ function renderFriendsTab() {
       } else {
          claimBtn.disabled = true;
          claimBtn.textContent = 'Nothing to claim yet';
-         claimBtn.style.boxShadow = '0 5px 0 #b0b0b5';
       }
     } else {
-      $('squadTotal').textContent = '0';
-      $('squadQualified').textContent = '0';
+      $('squadTotal').textContent = user.referrals || '0'; // Fallback to count
+      $('squadQualified').textContent = user.verifiedReferrals || '0';
       $('squadPool').textContent = '0.000';
       $('squadPoolUsd').textContent = '0.00';
       const claimBtn = $('claimSquadBtn');
       claimBtn.disabled = true;
       claimBtn.textContent = 'Nothing to claim yet';
     }
+  }).catch(e => {
+    console.error("Query failed. Make sure indexOn is set in rules.", e);
+    // Fallback display if query fails
+    $('squadTotal').textContent = user.referrals || '0';
+    $('squadQualified').textContent = user.verifiedReferrals || '0';
   });
 }
 
 window.claimSquadCommission = async () => {
-  // Implement claim logic. Since this is complex (tracking what has been claimed), 
-  // for now we'll just add the displayed pool and reset totalMined of referrals or add a "claimed" tracker.
-  // A simple way: Add balance and update a `commissionClaimedAt` timestamp. 
-  // Calculate commission only for events *after* the last claim.
-  // To keep it simple and bug-free for now, I'll disable if user just wants to test the UI.
-  
-  // NOTE: A full working commission system requires a separate ledger.
-  // Here we give a basic implementation.
   const amt = parseFloat($('squadPool').textContent);
   if (!amt || amt <= 0) return;
-  
   if(!confirm(`Claim ${amt} RET from squad commission?`)) return;
-  
   try {
     await update(ref(db, 'users/' + uid), { 
        balance: (user.balance || 0) + amt,
@@ -1223,7 +1241,7 @@ function renderWalletTab() {
   
   const tonSec = $('tonWalletSection');
   if (user.tonConnected && user.tonAddress) {
-    const addr = user.tonAddress;
+    const addr = rawToFriendly(user.tonAddress); // FIX: Show user-friendly address
     tonSec.innerHTML = `
       <div class="ton-left">
         <div class="ton-icon">TON</div>
@@ -1291,8 +1309,7 @@ function renderHistory() {
         const iconColor = isPositive ? 'var(--green)' : 'var(--red)';
         const bgColor = isPositive ? '#E8F8EC' : '#FFEBE9';
         
-        // Different icon based on type
-        let svgIcon = '<path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>'; // Default
+        let svgIcon = '<path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>';
         if (i.type.includes('Deposit') || i.type.includes('Bought')) svgIcon = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>';
         if (i.type.includes('Withdraw')) svgIcon = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>';
         if (i.type.includes('Mining')) svgIcon = '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>';
@@ -1339,7 +1356,6 @@ async function sendTonPayment(amountTon, comment) {
     return true;
   } catch (e) {
     console.error('Payment failed:', e);
-    alert('Payment Error: ' + (e.message || 'User rejected the transaction.'));
     showToast('Payment cancelled or failed', true);
     return false;
   }
@@ -1362,16 +1378,27 @@ window.payVerify = async () => {
   if (success) {
     await update(ref(db, 'users/' + uid), { isVerified: true });
     user.isVerified = true;
-    await push(ref(db, 'transactions'), { user: user.username, type: 'Deposit', amount: fee, date: Date.now(), comment: 'Verification' });
-    await push(ref(db, 'history/' + uid), { type: 'Account Verified', amount: 0, date: Date.now() });
     
-    // Referral Bonus Logic (Give 100 RET to referrer if they brought this user)
+    // Referral Bonus Logic Fixed!
     if (user.referredBy && !user.verifiedBonusGiven) {
-       const refSnap = await get(ref(db, 'users/' + user.referredBy));
-       if (refSnap.exists()) {
-          await update(ref(db, 'users/' + user.referredBy + '/balance'), (bal) => (bal || 0) + 100);
-          await push(ref(db, 'users/' + user.referredBy + '/history'), { type: 'Referral Bonus (Verified Friend)', amount: 100, date: Date.now() });
-       }
+       try {
+           // ১. রেফারারের ব্যালেন্স ১০০ RET বাড়ানো
+           await runTransaction(ref(db, 'users/' + user.referredBy + '/balance'), (bal) => (bal || 0) + 100);
+           // ২. রেফারারের ভেরিফাইড কাউন্ট বাড়ানো
+           await runTransaction(ref(db, 'users/' + user.referredBy), (refUser) => {
+               if (refUser) {
+                   refUser.verifiedReferrals = (refUser.verifiedReferrals || 0) + 1;
+               }
+               return refUser;
+           });
+           // ৩. সঠিক পাথে হিস্ট্রি সেভ করা
+           await push(ref(db, 'history/' + user.referredBy), { type: 'Referral Bonus (Verified Friend)', amount: 100, date: Date.now() });
+           
+           // ৪. রেফারার কে নোটিফিকেশন পাঠানো
+           if(config.botToken) {
+               sendBotMessage(user.referredBy, `🎉 <b>Referral Verified!</b>\nYour friend verified their account. You got <b>+100 RET</b> bonus!`);
+           }
+       } catch(e) { console.error("Referral bonus error:", e); }
        await update(ref(db, 'users/' + uid), { verifiedBonusGiven: true });
     }
 
@@ -1412,8 +1439,6 @@ window.confirmBuy = async () => {
 // --- 18. WITHDRAW (UPDATED LOGIC) ---
 window.openWithdraw = () => {
   if (!user.tonConnected) { showToast('Connect TON wallet first', true); openTonConnect(); return; }
-  
-  // Allow entering modal to see warning if not verified
   $('wdMin').textContent = config.withdrawMin;
   $('withdrawModal').classList.add('show');
   
@@ -1438,7 +1463,6 @@ window.confirmWithdraw = async () => {
   if (!user.isVerified && (user.balance || 0) < 10000) {
     return showToast('You must verify or hold 10,000 RET to withdraw.', true);
   }
-  
   if (isNaN(amt) || amt <= 0) return showToast('Invalid amount', true);
   if (amt > (user.balance || 0)) return showToast('Insufficient balance', true);
   if (amt < min) return showToast(`Minimum ${min} RET`, true);
@@ -1447,8 +1471,7 @@ window.confirmWithdraw = async () => {
     await update(ref(db, 'users/' + uid), { balance: user.balance - amt });
     user.balance = user.balance - amt;
     
-    // Add TON address to withdrawal request
-    await push(ref(db, 'withdrawals'), { uid, amount: amt, status: 'pending', createdAt: Date.now(), tonAddress: user.tonAddress });
+    await push(ref(db, 'withdrawals'), { uid, amount: amt, status: 'pending', createdAt: Date.now(), tonAddress: rawToFriendly(user.tonAddress) });
     await push(ref(db, 'history/' + uid), { type: 'Withdraw Request', amount: -amt, date: Date.now() });
     
     closeWithdraw();
