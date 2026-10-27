@@ -59,7 +59,7 @@
   .unclaimed-amount span { font-size:17px; color:var(--sub); font-weight:700; letter-spacing:0; }
   .unclaimed-sub { color:var(--sub); font-size:13px; margin-bottom:18px; position:relative; z-index:2; }
 
-  /* 3D Buttons Restored */
+  /* 3D Buttons */
   .btn-primary { width:100%; min-height:56px; padding:0 18px; border-radius:16px; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:#fff; font-size:16px; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 0 var(--primary-dark), 0 8px 20px rgba(59,130,246,0.35); transition:all 0.1s; letter-spacing:0.2px; }
   .btn-primary:active:not(:disabled) { transform:translateY(6px); box-shadow:0 0 0 var(--primary-dark), 0 4px 10px rgba(59,130,246,0.35); }
   .btn-primary:disabled { background:#CBD5E1; box-shadow:0 6px 0 #94A3B8; cursor:not-allowed; opacity:0.75; }
@@ -519,14 +519,14 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// --- 100% CORRECT TON ADDRESS CONVERTER ---
+// --- 100% CORRECT TON ADDRESS CONVERTER (UQ format for Non-Bounceable) ---
 function rawToFriendly(raw) {
   if (!raw) return '';
   if (raw.startsWith('UQ') || raw.startsWith('EQ') || raw.startsWith('kQ') || raw.startsWith('0Q')) return raw;
   if (!raw.includes(':')) return raw;
   try {
     const [wc, hash] = raw.split(':');
-    const tag = 0x11; // bounceable
+    const tag = 0x51; // 0x51 for non-bounceable (UQ), 0x11 for bounceable (EQ)
     const bytes = new Uint8Array(36);
     bytes[0] = tag;
     bytes[1] = parseInt(wc, 10);
