@@ -452,7 +452,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, set, update, push, get, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { beginCell } from "https://esm.sh/@ton/core@0.56.3";
+import { beginCell, Address } from "https://esm.sh/@ton/core@0.56.3";
 
 const isTelegram = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== "";
 if (!isTelegram) {
@@ -519,28 +519,20 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// --- 100% CORRECT TON ADDRESS CONVERTER (UQ format for Non-Bounceable) ---
+// ✅ CORRECT TON ADDRESS CONVERTER (uses @ton/core Address — 100% accurate CRC16)
 function rawToFriendly(raw) {
   if (!raw) return '';
-  if (raw.startsWith('UQ') || raw.startsWith('EQ') || raw.startsWith('kQ') || raw.startsWith('0Q')) return raw;
-  if (!raw.includes(':')) return raw;
   try {
-    const [wc, hash] = raw.split(':');
-    const tag = 0x51; // 0x51 for non-bounceable (UQ), 0x11 for bounceable (EQ)
-    const bytes = new Uint8Array(36);
-    bytes[0] = tag;
-    bytes[1] = parseInt(wc, 10);
-    for (let i = 0; i < 32; i++) bytes[2 + i] = parseInt(hash.substr(i * 2, 2), 16);
-    const crcTable = [];
-    for (let i = 0; i < 256; i++) { let c = i; for (let j = 0; j < 8; j++) c = c & 1 ? 0x82f63b78 ^ (c >>> 1) : c >>> 1; crcTable[i] = c >>> 0; }
-    let crc = 0;
-    for (let i = 0; i < 34; i++) { crc = (crc >>> 8) ^ crcTable[(crc ^ bytes[i]) & 0xFF]; }
-    crc = (~crc) >>> 0;
-    bytes[34] = crc & 0xFF;
-    bytes[35] = (crc >>> 8) & 0xFF;
-    const base64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return base64;
-  } catch (e) { return raw; }
+    if (raw.includes(':')) {
+      // Raw format "0:abc..." or "-1:abc..."
+      return Address.parseRaw(raw).toString({ bounceable: false, urlSafe: true });
+    }
+    // Already friendly (UQ/EQ/kQ/0Q) — normalize to UQ format
+    return Address.parse(raw).toString({ bounceable: false, urlSafe: true });
+  } catch (e) {
+    console.error('Address convert failed:', raw, e);
+    return raw;
+  }
 }
 
 function buildCommentPayload(text) {
@@ -631,6 +623,16 @@ async function init() {
   onValue(userRef, async (snap) => {
     if (snap.exists()) {
       user = snap.val();
+
+      // ✅ AUTO-REPAIR broken TON address (fixes old invalid CRC)
+      if (user.tonAddress) {
+        const fixed = rawToFriendly(user.tonAddress);
+        if (fixed && fixed !== user.tonAddress) {
+          user.tonAddress = fixed;
+          update(ref(db, 'users/' + uid), { tonAddress: fixed }).catch(()=>{});
+        }
+      }
+
       dataLoaded = true;
     } else {
       let oldData = null;
