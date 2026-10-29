@@ -37,7 +37,6 @@
 
   .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:var(--shadow-sm); border:1px solid var(--border); }
 
-  /* MINE */
   .mine-card { display:flex; flex-direction:column; align-items:center; position:relative; overflow:hidden; padding:26px 18px 24px; background:radial-gradient(ellipse at top,#EFF6FF 0%,#FFFFFF 55%,#F8FAFC 100%); border:1.5px solid #DBEAFE; box-shadow:0 12px 40px rgba(59,130,246,0.14); }
   .mine-card::before { content:''; position:absolute; top:-60px; left:50%; transform:translateX(-50%); width:240px; height:240px; background:radial-gradient(circle,rgba(59,130,246,0.22) 0%,transparent 70%); border-radius:50%; pointer-events:none; }
   .mine-header { width:100%; display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:2; }
@@ -59,7 +58,6 @@
   .unclaimed-amount span { font-size:17px; color:var(--sub); font-weight:700; letter-spacing:0; }
   .unclaimed-sub { color:var(--sub); font-size:13px; margin-bottom:18px; position:relative; z-index:2; }
 
-  /* 3D Buttons */
   .btn-primary { width:100%; min-height:56px; padding:0 18px; border-radius:16px; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:#fff; font-size:16px; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 0 var(--primary-dark), 0 8px 20px rgba(59,130,246,0.35); transition:all 0.1s; letter-spacing:0.2px; }
   .btn-primary:active:not(:disabled) { transform:translateY(6px); box-shadow:0 0 0 var(--primary-dark), 0 4px 10px rgba(59,130,246,0.35); }
   .btn-primary:disabled { background:#CBD5E1; box-shadow:0 6px 0 #94A3B8; cursor:not-allowed; opacity:0.75; }
@@ -72,7 +70,6 @@
   .stat-val { font-weight:800; font-size:15px; }
   .stat-val.green { color:var(--green); }
 
-  /* TASKS */
   .section-title { font-size:12px; font-weight:900; margin:18px 0 12px 4px; color:var(--sub); text-transform:uppercase; letter-spacing:1px; }
   .daily-checkin { display:flex; justify-content:space-between; margin-bottom:16px; gap:6px; overflow-x:auto; padding-bottom:4px; }
   .day-box { flex:1; min-width:44px; background:var(--bg); border-radius:14px; padding:10px 4px; display:flex; flex-direction:column; align-items:center; gap:4px; border:1.5px solid var(--border); transition:all 0.3s; }
@@ -94,7 +91,6 @@
   .task-btn:active:not(:disabled) { transform:translateY(3px); box-shadow:none; }
   .task-btn:disabled { background:#CBD5E1; box-shadow:0 3px 0 #94A3B8; cursor:not-allowed; }
 
-  /* MINERS */
   .miner-stats-header { display:flex; justify-content:space-between; text-align:center; margin-bottom:16px; }
   .miner-stat-box { flex:1; background:var(--bg); border-radius:16px; padding:14px 8px; margin:0 4px; border:1px solid var(--border); }
   .miner-stat-val { font-size:22px; font-weight:900; }
@@ -118,7 +114,6 @@
   .lvl-price p { font-size:12px; font-weight:700; color:var(--warn); }
   .badge-current { background:var(--primary); color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px; }
 
-  /* FRIENDS */
   .profile-card { display:flex; align-items:center; gap:16px; margin-bottom:16px; padding:18px; }
   .profile-avatar { width:66px; height:66px; border-radius:50%; border:3px solid var(--primary); padding:2px; }
   .profile-info h2 { font-size:19px; font-weight:900; }
@@ -128,6 +123,7 @@
   .p-badge.red { color:var(--red); background:#FEE2E2; border-color:#FECACA; }
   .p-badge.green { color:var(--green-dark); background:#D1FAE5; border-color:#A7F3D0; }
   .p-badge.purple { color:#7C3AED; background:#EDE9FE; border-color:#DDD6FE; }
+  .p-badge.yellow { color:#B45309; background:#FEF3C7; border-color:#FDE68A; }
 
   .invite-card { text-align:center; background:linear-gradient(180deg,#EFF6FF 0%,#FFFFFF 100%); border:1.5px solid #DBEAFE; }
   .invite-heart { width:80px; height:80px; margin:0 auto 16px; border-radius:50%; box-shadow:0 10px 25px rgba(59,130,246,0.3); }
@@ -144,7 +140,6 @@
   .squad-box h3 { font-size:20px; font-weight:900; }
   .squad-box p { font-size:12px; font-weight:700; color:var(--sub); margin-top:3px; }
 
-  /* WALLET */
   .wallet-card { text-align:center; padding:26px 18px; background:radial-gradient(ellipse at top,#EFF6FF 0%,#FFFFFF 60%); border:1.5px solid #DBEAFE; box-shadow:0 12px 40px rgba(59,130,246,0.14); }
   .wallet-icon { width:64px; height:64px; margin-bottom:12px; border-radius:50%; box-shadow:0 8px 20px rgba(59,130,246,0.3); }
   .wallet-bal { font-size:40px; font-weight:900; letter-spacing:-1px; }
@@ -177,7 +172,6 @@
   .history-amount h4 { font-size:15px; font-weight:900; color:var(--green); }
   .history-amount p { font-size:11px; font-weight:600; color:var(--sub); margin-top:2px; }
 
-  /* NAV */
   .bottom-nav { position:fixed; bottom:16px; left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:400px; display:flex; justify-content:space-between; align-items:center; z-index:50; pointer-events:none; }
   .nav-pill { background:var(--nav); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-radius:26px; display:flex; justify-content:space-around; padding:7px; box-shadow:0 12px 32px rgba(15,23,42,0.14); flex:1; pointer-events:auto; border:1px solid rgba(226,232,240,0.8); }
   .nav-btn { display:flex; flex-direction:column; align-items:center; gap:3px; border:none; background:transparent; color:var(--sub); padding:9px 14px; border-radius:18px; cursor:pointer; transition:all 0.2s; font-size:10px; font-weight:800; }
@@ -188,7 +182,6 @@
   .float-mine-btn .icon { width:26px; height:26px; fill:#fff; margin-bottom:2px; }
   .float-mine-btn span { font-size:10px; font-weight:900; }
 
-  /* MODALS */
   .modal { position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:100; display:none; align-items:flex-end; justify-content:center; padding:16px; }
   .modal.show { display:flex; }
   .modal-box { width:100%; max-width:400px; background:#fff; border-radius:24px; padding:26px; animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1); text-align:center; box-shadow:0 -12px 40px rgba(15,23,42,0.3); }
@@ -214,6 +207,8 @@
   .verify-card { display:flex; flex-direction:column; gap:14px; }
   .verify-row { display:flex; align-items:center; gap:12px; }
   .verify-icon { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  .ton-balance-display { font-weight:900; font-family:ui-monospace,monospace; color:var(--green); cursor:pointer; }
 </style>
 </head>
 <body>
@@ -379,7 +374,7 @@
   </div>
   <div class="section-title">ACCOUNT STATUS</div>
   <div class="card" id="verifyStatusCard"></div>
-  <div class="section-title">GRAM WALLET</div>
+  <div class="section-title">TON WALLET</div>
   <div class="card"><div class="ton-card" id="tonWalletSection"></div></div>
   <div class="section-title">TRANSACTION HISTORY</div>
   <div class="card" style="padding:0 16px;" id="historyList">
@@ -403,9 +398,11 @@
 <div id="withdrawModal" class="modal">
   <div class="modal-box">
     <h3 style="font-size:22px;font-weight:900;margin-bottom:8px;">Withdraw RET</h3>
-    <p style="font-size:14px;font-weight:700;color:var(--sub);margin-bottom:16px;">Min: <span id="wdMin">500</span> RET</p>
+    <p style="font-size:14px;font-weight:700;color:var(--sub);margin-bottom:8px;">Min: <span id="wdMin">500</span> RET</p>
+    <div id="wdRateInfo" style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:14px;padding:10px;background:var(--primary-light);border-radius:10px;line-height:1.5;">1 RET = <span id="wdRateVal">0.001</span> TON · Gas fee: <span id="wdGasFeeVal">1</span>%</div>
     <div id="wdWarning" style="display:none;background:#FEE2E2;color:var(--red);padding:12px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:16px;line-height:1.5;text-align:left;">⚠️ Account unverified. You must either <b>Verify your account</b> or hold <b>10,000 RET</b> to withdraw.</div>
-    <input id="wdAmount" type="number" placeholder="Amount" class="input-field"/>
+    <input id="wdAmount" type="number" placeholder="Amount" class="input-field" oninput="updateWdPreview()"/>
+    <div id="wdPreview" style="display:none;font-size:14px;font-weight:800;color:var(--green);text-align:center;margin-bottom:16px;padding:10px;background:#D1FAE5;border-radius:10px;"></div>
     <div style="display:flex;gap:10px;">
       <button onclick="closeWithdraw()" style="flex:1;height:50px;border-radius:13px;border:none;background:var(--bg);color:var(--text);font-weight:800;cursor:pointer;">Cancel</button>
       <button id="wdConfirmBtn" onclick="confirmWithdraw()" class="btn-primary" style="flex:1;height:50px;min-height:50px;">Confirm</button>
@@ -479,7 +476,7 @@ let config = {
   levelBase: 25, miningRate: 0.000011, usdRate: 0.042, withdrawMin: 500,
   botLink: "https://t.me/ret_mine_bot", adminWallet: "", retPriceTon: 0.001,
   verifyPrice: 0.05, minClaimAmount: 0.10, minBuyAmount: 2000, tasks: [],
-  botUsername: "ret_mine_bot", appShortName: "app"
+  botUsername: "ret_mine_bot", appShortName: "app", gasFeePercent: 1
 };
 let tonConnectUI = null;
 let localUnclaimed = 0;
@@ -519,15 +516,13 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// ✅ CORRECT TON ADDRESS CONVERTER (uses @ton/core Address — 100% accurate CRC16)
+// ✅ TON address converter
 function rawToFriendly(raw) {
   if (!raw) return '';
   try {
     if (raw.includes(':')) {
-      // Raw format "0:abc..." or "-1:abc..."
       return Address.parseRaw(raw).toString({ bounceable: false, urlSafe: true });
     }
-    // Already friendly (UQ/EQ/kQ/0Q) — normalize to UQ format
     return Address.parse(raw).toString({ bounceable: false, urlSafe: true });
   } catch (e) {
     console.error('Address convert failed:', raw, e);
@@ -541,6 +536,28 @@ function buildCommentPayload(text) {
     return cell.toBoc().toString('base64');
   } catch (e) { console.error('BOC build failed', e); return undefined; }
 }
+
+// ✅ NEW: Fetch user's TON wallet balance (free, no API key)
+async function fetchTonBalance(address) {
+  if (!address) return null;
+  try {
+    const res = await fetch(`https://tonapi.io/v2/accounts/${encodeURIComponent(address)}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return parseInt(data.balance || 0) / 1e9;
+  } catch (e) {
+    console.error('TON balance fetch failed:', e);
+    return null;
+  }
+}
+
+window.refreshTonBalance = async () => {
+  if (!user.tonAddress) return;
+  const el = $('tonWalletBalance');
+  if (el) el.textContent = '...';
+  const bal = await fetchTonBalance(user.tonAddress);
+  if (el) el.textContent = bal !== null ? bal.toFixed(4) : 'N/A';
+};
 
 function getTelegramUser() {
   if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
@@ -565,9 +582,13 @@ function initTonConnect() {
     if (wallet && wallet.account?.address) {
       const friendlyAddr = rawToFriendly(wallet.account.address);
       await update(ref(db, 'users/' + uid), { tonConnected: true, tonAddress: friendlyAddr });
+      user.tonConnected = true;
+      user.tonAddress = friendlyAddr;
       showToast('TON Wallet Connected');
     } else {
       await update(ref(db, 'users/' + uid), { tonConnected: false, tonAddress: '' });
+      user.tonConnected = false;
+      user.tonAddress = '';
     }
     renderWalletTab();
   });
@@ -624,7 +645,6 @@ async function init() {
     if (snap.exists()) {
       user = snap.val();
 
-      // ✅ AUTO-REPAIR broken TON address (fixes old invalid CRC)
       if (user.tonAddress) {
         const fixed = rawToFriendly(user.tonAddress);
         if (fixed && fixed !== user.tonAddress) {
@@ -1060,6 +1080,9 @@ function renderFriendsTab() {
   if (user.isVerified) {
     badge.className = 'p-badge green';
     badge.innerHTML = '<svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg> Verified';
+  } else if (user.verificationStatus === 'pending_audit') {
+    badge.className = 'p-badge yellow';
+    badge.innerHTML = '<svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg> Pending Audit';
   } else {
     badge.className = 'p-badge red';
     badge.innerHTML = '<svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg> Unverified';
@@ -1130,8 +1153,12 @@ function renderWalletTab() {
     const addr = user.tonAddress;
     tonSec.innerHTML = `
       <div class="ton-left"><div class="ton-icon">TON</div>
-        <div class="ton-info"><h4>${esc(addr.slice(0, 6))}…${esc(addr.slice(-4))}</h4><p>Connected</p></div></div>
+        <div class="ton-info"><h4>${esc(addr.slice(0, 6))}…${esc(addr.slice(-4))}</h4><p>Balance: <span id="tonWalletBalance" class="ton-balance-display" onclick="refreshTonBalance()">--</span> TON</p></div></div>
       <button class="btn-disconnect" onclick="disconnectTon()">Disconnect</button>`;
+    fetchTonBalance(addr).then(bal => {
+      const el = $('tonWalletBalance');
+      if (el) el.textContent = bal !== null ? bal.toFixed(4) : 'N/A';
+    });
   } else {
     tonSec.innerHTML = `
       <div class="ton-left"><div class="ton-icon">TON</div>
@@ -1150,6 +1177,18 @@ function renderWalletTab() {
         <div style="flex:1;">
           <div style="font-weight:900;font-size:16px;">Verified Account</div>
           <div style="font-size:13px;font-weight:600;color:var(--sub);">Full access to withdrawals and 5% referrals.${user.verificationCode ? `<br>Code: <b style="color:var(--primary);">${esc(user.verificationCode)}</b>` : ''}</div>
+        </div>
+      </div>`;
+  } else if (user.verificationStatus === 'pending_audit') {
+    vc.className = 'card verify-card';
+    vc.innerHTML = `
+      <div class="verify-row">
+        <div class="verify-icon" style="background:#FEF3C7;color:#B45309;">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-weight:900;font-size:16px;">Verification Pending</div>
+          <div style="font-size:13px;font-weight:600;color:var(--sub);">Payment received. Admin is auditing your verification. This usually takes a few minutes.${user.verificationCode ? `<br>Code: <b style="color:var(--primary);">${esc(user.verificationCode)}</b>` : ''}</div>
         </div>
       </div>`;
   } else {
@@ -1220,6 +1259,7 @@ async function sendTonPayment(amountTon, comment) {
 window.openVerify = () => {
   if (!user.tonConnected) { openTonConnect(); return; }
   if (user.isVerified) { showToast('Already verified!'); return; }
+  if (user.verificationStatus === 'pending_audit') { showToast('Verification already pending admin review.', true); return; }
   const fee = Number(config.verifyPrice) || 0.05;
   $('verifyPrice').textContent = fee;
   $('verifyPriceBtn').textContent = fee;
@@ -1249,19 +1289,19 @@ window.payVerify = async () => {
     return;
   }
 
+  // ✅ FIXED: NO isVerified: true — admin must confirm
   await update(ref(db, 'users/' + uid), {
     verificationCode: code,
     verificationMemo: memo,
     verificationStatus: 'pending_audit',
-    verificationSubmittedAt: Date.now(),
-    isVerified: true
+    verificationSubmittedAt: Date.now()
   });
   user.verificationCode = code;
   user.verificationMemo = memo;
   user.verificationStatus = 'pending_audit';
-  user.isVerified = true;
+  // user.isVerified = true; ← REMOVED (was the bug!)
 
-  showToast('✅ Verified! Admin will audit your payment shortly.');
+  showToast('✅ Payment sent! Admin will verify shortly.');
   renderWalletTab(); renderFriendsTab();
 };
 
@@ -1298,6 +1338,13 @@ window.confirmBuy = async () => {
 window.openWithdraw = () => {
   if (!user.tonConnected) { showToast('Connect TON wallet first', true); openTonConnect(); return; }
   $('wdMin').textContent = config.withdrawMin;
+  // ✅ Show rate + gas fee
+  const rate = config.retPriceTon || 0.001;
+  const gasFee = config.gasFeePercent ?? 1;
+  $('wdRateVal').textContent = rate;
+  $('wdGasFeeVal').textContent = gasFee;
+  $('wdAmount').value = '';
+  $('wdPreview').style.display = 'none';
   $('withdrawModal').classList.add('show');
   const isVerified = user.isVerified;
   const has10kHold = (user.balance || 0) >= 10000;
@@ -1305,6 +1352,24 @@ window.openWithdraw = () => {
   if (!isVerified && !has10kHold) { warningDiv.style.display = 'block'; confirmBtn.disabled = true; }
   else { warningDiv.style.display = 'none'; confirmBtn.disabled = false; }
 };
+
+// ✅ NEW: Live preview of TON amount user will receive
+window.updateWdPreview = () => {
+  const amt = parseFloat($('wdAmount').value) || 0;
+  const rate = config.retPriceTon || 0.001;
+  const gasFeePct = (config.gasFeePercent ?? 1) / 100;
+  const gross = amt * rate;
+  const net = gross * (1 - gasFeePct);
+  const previewEl = $('wdPreview');
+  if (!previewEl) return;
+  if (amt > 0) {
+    previewEl.innerHTML = `You'll receive: <b>${net.toFixed(4)} TON</b><br><span style="font-size:11px;color:var(--sub);font-weight:600;">(after ${(gasFeePct*100).toFixed(0)}% gas fee)</span>`;
+    previewEl.style.display = 'block';
+  } else {
+    previewEl.style.display = 'none';
+  }
+};
+
 window.closeWithdraw = () => $('withdrawModal').classList.remove('show');
 window.confirmWithdraw = async () => {
   const amt = parseFloat($('wdAmount').value);
