@@ -23,17 +23,24 @@
   #securityBlock { display:none; position:fixed; inset:0; background:#fff; z-index:9999; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; }
   #securityBlock h2 { color:var(--red); margin-bottom:10px; }
 
+  /* Force Join Overlay */
+  #forceJoinOverlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:9998; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; color:#fff; }
+  .force-join-box { background:#fff; color:var(--text); border-radius:24px; padding:28px 20px; max-width:340px; width:100%; box-shadow:0 20px 40px rgba(0,0,0,0.3); }
+
   .header { position:sticky; top:0; z-index:40; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); background:rgba(245,247,250,0.85); border-bottom:1px solid rgba(226,232,240,0.6); }
   .header-left { display:flex; align-items:center; gap:10px; }
-  .avatar { width:38px; height:38px; border-radius:50%; object-fit:cover; background:#ddd; box-shadow:0 2px 8px rgba(59,130,246,0.2); border:2px solid #fff; }
+  .avatar { width:38px; height:38px; border-radius:50%; object-fit:cover; background:#ddd; box-shadow:0 2px 8px rgba(59,130,246,0.2); border:2px solid #fff; cursor:pointer; }
   .balance-pill { display:flex; align-items:center; gap:6px; background:linear-gradient(135deg,#fff 0%,#F8FAFC 100%); padding:7px 11px; border-radius:22px; box-shadow:var(--shadow-sm); font-weight:700; font-size:14px; border:1px solid var(--border); }
   .balance-pill img { width:16px; height:16px; }
   .add-btn { width:20px; height:20px; border-radius:50%; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:bold; margin-left:2px; cursor:pointer; box-shadow:0 2px 6px rgba(59,130,246,0.4); }
   .level-pill { background:linear-gradient(135deg,#FEF3C7 0%,#FDE68A 100%); color:#B45309; padding:7px 13px; border-radius:20px; font-size:13px; font-weight:800; display:flex; align-items:center; gap:4px; box-shadow:0 2px 8px rgba(245,158,11,0.25); }
 
-  .tab-section { display:none; padding:0 16px; animation:fadeUp 0.35s cubic-bezier(0.16,1,0.3,1); }
-  .tab-section.active { display:block; }
+  .tab-section, .sub-page { display:none; padding:0 16px; animation:fadeUp 0.35s cubic-bezier(0.16,1,0.3,1); }
+  .tab-section.active, .sub-page.active { display:block; }
   @keyframes fadeUp { from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+
+  .subpage-topbar { display:flex; align-items:center; gap:12px; padding:12px 0 16px; }
+  .btn-back { display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:12px; background:var(--card); border:1px solid var(--border); box-shadow:var(--shadow-sm); cursor:pointer; }
 
   .card { background:var(--card); border-radius:20px; padding:18px; margin-bottom:14px; box-shadow:var(--shadow-sm); border:1px solid var(--border); }
 
@@ -56,7 +63,13 @@
   .unclaimed-text { color:var(--sub); font-size:13px; font-weight:600; position:relative; z-index:2; }
   .unclaimed-amount { font-size:40px; font-weight:900; margin:4px 0; color:var(--text); letter-spacing:-1px; position:relative; z-index:2; }
   .unclaimed-amount span { font-size:17px; color:var(--sub); font-weight:700; letter-spacing:0; }
-  .unclaimed-sub { color:var(--sub); font-size:13px; margin-bottom:18px; position:relative; z-index:2; }
+  .unclaimed-sub { color:var(--sub); font-size:13px; margin-bottom:12px; position:relative; z-index:2; }
+
+  /* Mining Claim Progress */
+  .mine-claim-progress-wrap { width:100%; margin-bottom:14px; position:relative; z-index:2; }
+  .mine-claim-progress-bg { width:100%; height:6px; background:rgba(59,130,246,0.12); border-radius:10px; overflow:hidden; }
+  .mine-claim-progress-fill { height:100%; width:0%; background:linear-gradient(90deg,var(--primary) 0%,var(--green) 100%); transition:width 0.3s; }
+  .mine-claim-progress-labels { display:flex; justify-content:space-between; font-size:10px; font-weight:700; color:var(--sub); margin-top:4px; }
 
   .btn-primary { width:100%; min-height:56px; padding:0 18px; border-radius:16px; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:#fff; font-size:16px; font-weight:800; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 6px 0 var(--primary-dark), 0 8px 20px rgba(59,130,246,0.35); transition:all 0.1s; letter-spacing:0.2px; }
   .btn-primary:active:not(:disabled) { transform:translateY(6px); box-shadow:0 0 0 var(--primary-dark), 0 4px 10px rgba(59,130,246,0.35); }
@@ -90,6 +103,7 @@
   .task-btn { background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%); color:#fff; border:none; padding:9px 17px; border-radius:13px; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap; flex-shrink:0; box-shadow:0 3px 0 var(--primary-dark); transition:0.1s; }
   .task-btn:active:not(:disabled) { transform:translateY(3px); box-shadow:none; }
   .task-btn:disabled { background:#CBD5E1; box-shadow:0 3px 0 #94A3B8; cursor:not-allowed; }
+  .task-btn.claim-ready { background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%); box-shadow:0 3px 0 var(--green-dark); }
 
   .miner-stats-header { display:flex; justify-content:space-between; text-align:center; margin-bottom:16px; }
   .miner-stat-box { flex:1; background:var(--bg); border-radius:16px; padding:14px 8px; margin:0 4px; border:1px solid var(--border); }
@@ -122,7 +136,6 @@
   .p-badge { font-size:11px; padding:3px 9px; border-radius:10px; background:var(--bg); color:var(--sub); display:flex; align-items:center; gap:4px; font-weight:800; border:1px solid var(--border); }
   .p-badge.red { color:var(--red); background:#FEE2E2; border-color:#FECACA; }
   .p-badge.green { color:var(--green-dark); background:#D1FAE5; border-color:#A7F3D0; }
-  .p-badge.purple { color:#7C3AED; background:#EDE9FE; border-color:#DDD6FE; }
   .p-badge.yellow { color:#B45309; background:#FEF3C7; border-color:#FDE68A; }
 
   .invite-card { text-align:center; background:linear-gradient(180deg,#EFF6FF 0%,#FFFFFF 100%); border:1.5px solid #DBEAFE; }
@@ -182,6 +195,7 @@
   .float-mine-btn .icon { width:26px; height:26px; fill:#fff; margin-bottom:2px; }
   .float-mine-btn span { font-size:10px; font-weight:900; }
 
+  /* Modals kept for Ad only */
   .modal { position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); z-index:100; display:none; align-items:flex-end; justify-content:center; padding:16px; }
   .modal.show { display:flex; }
   .modal-box { width:100%; max-width:400px; background:#fff; border-radius:24px; padding:26px; animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1); text-align:center; box-shadow:0 -12px 40px rgba(15,23,42,0.3); }
@@ -209,6 +223,18 @@
   .verify-icon { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
   .ton-balance-display { font-weight:900; font-family:ui-monospace,monospace; color:var(--green); cursor:pointer; }
+
+  /* Settings Switch */
+  .switch-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--border); }
+  .switch-row:last-child { border-bottom:none; }
+  .switch-label h4 { font-size:15px; font-weight:800; }
+  .switch-label p { font-size:12px; color:var(--sub); font-weight:600; }
+  .toggle-switch { position:relative; width:48px; height:26px; }
+  .toggle-switch input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; cursor:pointer; inset:0; background-color:#CBD5E1; transition:.3s; border-radius:34px; }
+  .slider:before { position:absolute; content:""; height:20px; width:20px; left:3px; bottom:3px; background-color:white; transition:.3s; border-radius:50%; }
+  input:checked + .slider { background-color:var(--primary); }
+  input:checked + .slider:before { transform:translateX(22px); }
 </style>
 </head>
 <body>
@@ -217,6 +243,19 @@
   <svg style="width:64px;height:64px;fill:var(--red);margin-bottom:16px;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
   <h2>Access Denied</h2>
   <p style="color:var(--sub);margin-top:8px;">This app can only be accessed inside Telegram.</p>
+</div>
+
+<!-- Force Join Channel Overlay -->
+<div id="forceJoinOverlay">
+  <div class="force-join-box">
+    <div style="width:64px;height:64px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+      <svg class="icon" style="width:34px;height:34px;" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </div>
+    <h3 style="font-size:20px;font-weight:900;margin-bottom:8px;">Join Our Channel</h3>
+    <p style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:20px;line-height:1.5;">You must join our official Telegram channel to access RET Miner and start mining.</p>
+    <a id="btnJoinChannel" href="#" target="_blank" class="btn-primary" style="margin-bottom:10px;text-decoration:none;font-size:15px;min-height:50px;">Join Channel</a>
+    <button class="btn-primary" style="background:var(--bg);color:var(--text);box-shadow:none;border:1.5px solid var(--border);min-height:48px;" onclick="checkForceJoin(true)">Check Again 🔄</button>
+  </div>
 </div>
 
 <div id="loading" class="loading-screen">
@@ -233,7 +272,7 @@
 
 <div id="header" class="header" style="display: none;">
   <div class="header-left">
-    <img id="userAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="avatar" />
+    <img id="userAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" class="avatar" onclick="openProfilePage()" title="View Profile" />
     <div class="balance-pill">
       <img src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" />
       <span id="headerBalance">0.00</span>
@@ -246,6 +285,8 @@
     Level <span id="headerLevel">1</span>
   </div>
 </div>
+
+<!-- ================= MAIN TABS ================= -->
 
 <div id="tab-mine" class="tab-section active">
   <div class="card mine-card">
@@ -264,6 +305,18 @@
     <div class="unclaimed-text">Unclaimed reward</div>
     <div class="unclaimed-amount font-mono"><span id="unclaimedAmount">0.00000</span> <span>RET</span></div>
     <div class="unclaimed-sub">≈ $<span id="unclaimedUsd">0.0000</span> • <span id="mineHash">0.00</span> TH/s</div>
+
+    <!-- Claim Progress Bar -->
+    <div class="mine-claim-progress-wrap">
+      <div class="mine-claim-progress-bg">
+        <div class="mine-claim-progress-fill" id="mineClaimProgressFill"></div>
+      </div>
+      <div class="mine-claim-progress-labels">
+        <span>Progress</span>
+        <span id="mineClaimProgressText">0% to Min Claim (0.02 RET)</span>
+      </div>
+    </div>
+
     <button id="claimBtn" class="btn-primary" onclick="claimMining()" disabled>Mining in progress...</button>
   </div>
 
@@ -368,19 +421,151 @@
     <div class="wallet-bal font-mono"><span id="walletBalance">0.00</span> <span>RET</span></div>
     <div class="wallet-usd">≈ $<span id="walletUsd">0.00</span></div>
     <div class="wallet-btns">
-      <button class="wallet-btn withdraw" onclick="openWithdraw()">Withdraw</button>
-      <button class="wallet-btn buy" onclick="openBuyRET()">Buy RET</button>
+      <button class="wallet-btn withdraw" onclick="openPage('withdraw')">Withdraw</button>
+      <button class="wallet-btn buy" onclick="openPage('buy')">Buy RET</button>
     </div>
   </div>
   <div class="section-title">ACCOUNT STATUS</div>
   <div class="card" id="verifyStatusCard"></div>
   <div class="section-title">TON WALLET</div>
   <div class="card"><div class="ton-card" id="tonWalletSection"></div></div>
-  <div class="section-title">TRANSACTION HISTORY</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="section-title">TRANSACTION HISTORY</div>
+    <div style="font-size:12px;font-weight:800;color:var(--primary);cursor:pointer;" onclick="openPage('history')">View All →</div>
+  </div>
   <div class="card" style="padding:0 16px;" id="historyList">
     <div style="text-align:center;padding:20px;color:var(--sub);font-weight:600;">No history yet.</div>
   </div>
 </div>
+
+<!-- ================= SUB PAGES ================= -->
+
+<!-- Sub-Page: Withdraw -->
+<div id="page-withdraw" class="sub-page">
+  <div class="subpage-topbar">
+    <button class="btn-back" onclick="closeSubPage()"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <h2 style="font-size:20px;font-weight:900;">Withdraw RET</h2>
+  </div>
+  <div class="card">
+    <p style="font-size:14px;font-weight:700;color:var(--sub);margin-bottom:8px;">Min: <span id="wdMin">500</span> RET</p>
+    <div id="wdRateInfo" style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:14px;padding:10px;background:var(--primary-light);border-radius:10px;line-height:1.5;">1 RET = <span id="wdRateVal">0.001</span> TON · Gas fee: <span id="wdGasFeeVal">1</span>%</div>
+    <div id="wdWarning" style="display:none;background:#FEE2E2;color:var(--red);padding:12px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:16px;line-height:1.5;text-align:left;">⚠️ Account unverified. You must either <b>Verify your account</b> or hold <b>10,000 RET</b> to withdraw.</div>
+    <input id="wdAmount" type="number" placeholder="Enter RET Amount" class="input-field" oninput="updateWdPreview()"/>
+    <div id="wdPreview" style="display:none;font-size:14px;font-weight:800;color:var(--green);text-align:center;margin-bottom:16px;padding:10px;background:#D1FAE5;border-radius:10px;"></div>
+    <button id="wdConfirmBtn" onclick="confirmWithdraw()" class="btn-primary" style="margin-top:10px;">Confirm Withdrawal</button>
+  </div>
+</div>
+
+<!-- Sub-Page: Buy RET -->
+<div id="page-buy" class="sub-page">
+  <div class="subpage-topbar">
+    <button class="btn-back" onclick="closeSubPage()"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <h2 style="font-size:20px;font-weight:900;">Buy RET</h2>
+  </div>
+  <div class="card">
+    <p style="font-size:14px;font-weight:700;color:var(--sub);margin-bottom:16px;">Rate: 1 TON = <span id="buyRate">0</span> RET<br>Min: <span id="buyMin">2000</span> RET</p>
+    <input id="buyAmount" type="number" placeholder="RET Amount" class="input-field" oninput="calcBuyCost()"/>
+    <div style="font-size:16px;font-weight:900;color:var(--primary);margin-bottom:16px;">Cost: <span id="buyCost">0.00</span> TON</div>
+    <button onclick="confirmBuy()" class="btn-primary">Buy Now</button>
+  </div>
+</div>
+
+<!-- Sub-Page: Verify -->
+<div id="page-verify" class="sub-page">
+  <div class="subpage-topbar">
+    <button class="btn-back" onclick="closeSubPage()"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <h2 style="font-size:20px;font-weight:900;">Account Verification</h2>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div style="width:64px;height:64px;border-radius:50%;background:#FEF3C7;color:#B45309;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+      <svg class="icon" style="width:32px;height:32px;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+    </div>
+    <h3 style="font-size:20px;font-weight:900;margin-bottom:8px;">Upgrade to Verified</h3>
+    <p style="font-size:14px;font-weight:600;color:var(--sub);margin-bottom:16px;line-height:1.6;">Deposit <b><span id="verifyPrice">0.05</span> TON</b> to verify your account.<br>This permanently unlocks withdrawals and 5% referral commissions.</p>
+    <div style="font-size:12px;font-weight:600;color:var(--sub);margin-bottom:20px;padding:12px;background:var(--bg);border-radius:12px;">🔒 Payment includes a unique tracking memo code for on-chain audit.</div>
+    <button onclick="payVerify()" class="btn-primary">Pay <span id="verifyPriceBtn">0.05</span> TON</button>
+  </div>
+</div>
+
+<!-- Sub-Page: Profile -->
+<div id="page-profile" class="sub-page">
+  <div class="subpage-topbar">
+    <button class="btn-back" onclick="closeSubPage()"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <h2 style="font-size:20px;font-weight:900;">User Profile</h2>
+  </div>
+  <div class="card" style="text-align:center;padding:26px 18px;">
+    <img id="pPageAvatar" src="https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png" style="width:80px;height:80px;border-radius:50%;border:3px solid var(--primary);margin:0 auto 12px;display:block;"/>
+    <h2 id="pPageName" style="font-size:22px;font-weight:900;">User</h2>
+    <p id="pPageHandle" style="font-size:14px;font-weight:600;color:var(--sub);margin-top:2px;">@username</p>
+  </div>
+
+  <div class="card stats-list" style="padding-top:0;padding-bottom:0;">
+    <div class="stat-item">
+      <div class="stat-left">Miner Level</div>
+      <div class="stat-val" id="pPageLevel">Level 1</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-left">Total Mined</div>
+      <div class="stat-val font-mono" id="pPageTotalMined">0.00 RET</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-left">Joined Date</div>
+      <div class="stat-val" id="pPageJoinDate">—</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-left">Verification Status</div>
+      <div class="stat-val" id="pPageStatus">Unverified</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+    <button class="btn-primary" style="background:var(--card);color:var(--text);border:1.5px solid var(--border);box-shadow:var(--shadow-sm);min-height:50px;" onclick="openPage('settings')">⚙️ Settings</button>
+    <button class="btn-primary" style="background:var(--card);color:var(--text);border:1.5px solid var(--border);box-shadow:var(--shadow-sm);min-height:50px;" onclick="contactSupport()">💬 Contact Support</button>
+  </div>
+</div>
+
+<!-- Sub-Page: Settings -->
+<div id="page-settings" class="sub-page">
+  <div class="subpage-topbar">
+    <button class="btn-back" onclick="openPage('profile')"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <h2 style="font-size:20px;font-weight:900;">Settings</h2>
+  </div>
+  <div class="card">
+    <div class="switch-row">
+      <div class="switch-label">
+        <h4>Sound Effects</h4>
+        <p>Play tap and action sounds</p>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleSound" onchange="updateSettings()" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="switch-row">
+      <div class="switch-label">
+        <h4>Notifications</h4>
+        <p>In-app alerts and notifications</p>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggleNotif" onchange="updateSettings()" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- Sub-Page: Full History -->
+<div id="page-history" class="sub-page">
+  <div class="subpage-topbar">
+    <button class="btn-back" onclick="closeSubPage()"><svg class="icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button>
+    <h2 style="font-size:20px;font-weight:900;">Transaction History</h2>
+  </div>
+  <div class="card" style="padding:0 16px;" id="fullHistoryList">
+    <div style="text-align:center;padding:20px;color:var(--sub);font-weight:600;">Loading full history...</div>
+  </div>
+</div>
+
+<!-- ================= BOTTOM NAVIGATION ================= -->
 
 <div class="bottom-nav">
   <button class="float-mine-btn" onclick="switchTab('mine')">
@@ -395,44 +580,7 @@
   </div>
 </div>
 
-<div id="withdrawModal" class="modal">
-  <div class="modal-box">
-    <h3 style="font-size:22px;font-weight:900;margin-bottom:8px;">Withdraw RET</h3>
-    <p style="font-size:14px;font-weight:700;color:var(--sub);margin-bottom:8px;">Min: <span id="wdMin">500</span> RET</p>
-    <div id="wdRateInfo" style="font-size:12px;font-weight:700;color:var(--sub);margin-bottom:14px;padding:10px;background:var(--primary-light);border-radius:10px;line-height:1.5;">1 RET = <span id="wdRateVal">0.001</span> TON · Gas fee: <span id="wdGasFeeVal">1</span>%</div>
-    <div id="wdWarning" style="display:none;background:#FEE2E2;color:var(--red);padding:12px;border-radius:12px;font-size:13px;font-weight:700;margin-bottom:16px;line-height:1.5;text-align:left;">⚠️ Account unverified. You must either <b>Verify your account</b> or hold <b>10,000 RET</b> to withdraw.</div>
-    <input id="wdAmount" type="number" placeholder="Amount" class="input-field" oninput="updateWdPreview()"/>
-    <div id="wdPreview" style="display:none;font-size:14px;font-weight:800;color:var(--green);text-align:center;margin-bottom:16px;padding:10px;background:#D1FAE5;border-radius:10px;"></div>
-    <div style="display:flex;gap:10px;">
-      <button onclick="closeWithdraw()" style="flex:1;height:50px;border-radius:13px;border:none;background:var(--bg);color:var(--text);font-weight:800;cursor:pointer;">Cancel</button>
-      <button id="wdConfirmBtn" onclick="confirmWithdraw()" class="btn-primary" style="flex:1;height:50px;min-height:50px;">Confirm</button>
-    </div>
-  </div>
-</div>
-
-<div id="buyModal" class="modal">
-  <div class="modal-box">
-    <h3 style="font-size:22px;font-weight:900;margin-bottom:8px;">Buy RET</h3>
-    <p style="font-size:14px;font-weight:700;color:var(--sub);margin-bottom:16px;">Rate: 1 TON = <span id="buyRate">0</span> RET<br>Min: <span id="buyMin">2000</span> RET</p>
-    <input id="buyAmount" type="number" placeholder="RET Amount" class="input-field" oninput="calcBuyCost()"/>
-    <div style="font-size:16px;font-weight:900;color:var(--primary);margin-bottom:16px;">Cost: <span id="buyCost">0.00</span> TON</div>
-    <div style="display:flex;gap:10px;">
-      <button onclick="closeBuy()" style="flex:1;height:50px;border-radius:13px;border:none;background:var(--bg);color:var(--text);font-weight:800;cursor:pointer;">Cancel</button>
-      <button onclick="confirmBuy()" class="btn-primary" style="flex:1;height:50px;min-height:50px;">Buy Now</button>
-    </div>
-  </div>
-</div>
-
-<div id="verifyModal" class="modal">
-  <div class="modal-box">
-    <h3 style="font-size:22px;font-weight:900;margin-bottom:8px;">Account Verification</h3>
-    <p style="font-size:14px;font-weight:600;color:var(--sub);margin-bottom:16px;line-height:1.6;">To verify your account, deposit <b><span id="verifyPrice">0.05</span> TON</b>.<br>This unlocks withdrawals and 5% referral commission.</p>
-    <div style="font-size:12px;font-weight:600;color:var(--sub);margin-bottom:16px;padding:10px;background:var(--bg);border-radius:10px;">🔒 Payment will include a unique code for on-chain verification</div>
-    <button onclick="payVerify()" class="btn-primary" style="height:52px;margin-bottom:10px;">Pay <span id="verifyPriceBtn">0.05</span> TON</button>
-    <button onclick="closeVerify()" style="width:100%;height:50px;border-radius:16px;border:none;background:var(--bg);color:var(--text);font-weight:800;cursor:pointer;">Cancel</button>
-  </div>
-</div>
-
+<!-- Monetag Ad Modal Only -->
 <div id="adModal" class="modal">
   <div class="modal-box">
     <div id="adSpinner" class="ad-loading-circle"></div>
@@ -475,8 +623,9 @@ let user = {};
 let config = {
   levelBase: 25, miningRate: 0.000011, usdRate: 0.042, withdrawMin: 500,
   botLink: "https://t.me/ret_mine_bot", adminWallet: "", retPriceTon: 0.001,
-  verifyPrice: 0.05, minClaimAmount: 0.10, minBuyAmount: 2000, tasks: [],
-  botUsername: "ret_mine_bot", appShortName: "app", gasFeePercent: 1
+  verifyPrice: 0.05, minClaimAmount: 0.02, minBuyAmount: 2000, tasks: [],
+  botUsername: "ret_mine_bot", appShortName: "app", gasFeePercent: 1,
+  channelUsername: "", botToken: ""
 };
 let tonConnectUI = null;
 let localUnclaimed = 0;
@@ -486,14 +635,22 @@ const adZoneLoading = {};
 let isClaimingMining = false;
 let historyUnsub = null;
 let dataLoaded = false;
+let currentActiveTab = 'mine';
+let appSettings = {
+  sound: localStorage.getItem('ret_sound') !== 'false',
+  notif: localStorage.getItem('ret_notif') !== 'false'
+};
 
 const $ = id => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = (n, d = 2) => (Number(n) || 0).toFixed(d);
+
 const showToast = (msg, isError = false) => {
+  if (!appSettings.notif) return;
   const t = $('toast'); t.textContent = msg; t.classList.toggle('error', isError); t.classList.add('show');
   clearTimeout(t._timeout); t._timeout = setTimeout(() => t.classList.remove('show'), 3400);
 };
+
 const calcLevel = (bal) => Math.max(1, Math.floor((Number(bal) || 0) / (config.levelBase || 25)) + 1);
 const calcSpeed = (lvl) => (0.5 + lvl * 0.03).toFixed(2);
 const calcDaily = (spd) => (parseFloat(spd) * (config.miningRate || 0.000011) * 86400).toFixed(2);
@@ -504,6 +661,7 @@ const shortCode = () => {
 };
 
 function playClickSound() {
+  if (!appSettings.sound) return;
   const sound = $('clickSound');
   if (sound) {
     sound.currentTime = 0;
@@ -511,10 +669,64 @@ function playClickSound() {
   }
 }
 document.addEventListener('click', (e) => {
-  if (e.target.closest('button') || e.target.closest('.task-btn') || e.target.closest('.add-btn') || e.target.closest('.nav-btn')) {
+  if (e.target.closest('button') || e.target.closest('.task-btn') || e.target.closest('.add-btn') || e.target.closest('.nav-btn') || e.target.closest('.btn-back')) {
     playClickSound();
   }
 });
+
+// ✅ Force Join Channel Logic
+async function checkForceJoin(isManual = false) {
+  const channel = (config.channelUsername || '').replace('@', '').trim();
+  const token = config.botToken || '';
+  if (!channel || !token || !uid) {
+    $('forceJoinOverlay').style.display = 'none';
+    return true;
+  }
+
+  $('btnJoinChannel').href = `https://t.me/${channel}`;
+
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/getChatMember?chat_id=@${channel}&user_id=${uid}`);
+    const data = await res.json();
+    if (data.ok && data.result) {
+      const status = data.result.status;
+      if (['creator', 'administrator', 'member'].includes(status)) {
+        $('forceJoinOverlay').style.display = 'none';
+        if (isManual) showToast('Channel join verified!');
+        return true;
+      }
+    }
+  } catch(e) {
+    console.warn("Channel check error:", e);
+  }
+
+  $('forceJoinOverlay').style.display = 'flex';
+  if (isManual) showToast('You have not joined the channel yet.', true);
+  return false;
+}
+window.checkForceJoin = checkForceJoin;
+
+// ✅ Check and Reset Daily Earning
+async function checkDailyReset() {
+  if (!uid || !user) return;
+  const today = new Date().toISOString().slice(0, 10);
+  if (user.todayDate !== today) {
+    user.todayEarned = 0;
+    user.todayDate = today;
+    await update(ref(db, 'users/' + uid), { todayEarned: 0, todayDate: today }).catch(()=>{});
+    renderMinersTab();
+  }
+}
+
+async function addTodayEarned(amt) {
+  if (!uid || !amt) return;
+  const today = new Date().toISOString().slice(0, 10);
+  let newEarned = (user.todayDate === today ? (Number(user.todayEarned) || 0) : 0) + amt;
+  user.todayEarned = newEarned;
+  user.todayDate = today;
+  await update(ref(db, 'users/' + uid), { todayEarned: newEarned, todayDate: today }).catch(()=>{});
+  renderMinersTab();
+}
 
 // ✅ TON address converter
 function rawToFriendly(raw) {
@@ -537,7 +749,6 @@ function buildCommentPayload(text) {
   } catch (e) { console.error('BOC build failed', e); return undefined; }
 }
 
-// ✅ NEW: Fetch user's TON wallet balance (free, no API key)
 async function fetchTonBalance(address) {
   if (!address) return null;
   try {
@@ -630,11 +841,16 @@ async function simulateLoading() {
   $('loading').style.display = 'none';
   $('header').style.display = 'flex';
   switchTab('mine');
+  checkForceJoin();
 }
 
 async function init() {
   onValue(ref(db, 'config'), (snap) => {
-    if (snap.exists()) { config = { ...config, ...snap.val() }; if (uid) { renderTasks(); renderMineTab(); renderWalletTab(); } }
+    if (snap.exists()) {
+      config = { ...config, ...snap.val() };
+      if (!config.minClaimAmount) config.minClaimAmount = 0.02;
+      if (uid) { renderTasks(); renderMineTab(); renderWalletTab(); checkForceJoin(); }
+    }
   });
 
   const tg = getTelegramUser();
@@ -644,6 +860,13 @@ async function init() {
   onValue(userRef, async (snap) => {
     if (snap.exists()) {
       user = snap.val();
+
+      // Fix old users' mining not starting: If lastSyncTime is older than 7 days, reset it to Date.now()
+      const now = Date.now();
+      if (!user.lastSyncTime || (now - user.lastSyncTime > 7 * 24 * 60 * 60 * 1000)) {
+        user.lastSyncTime = now;
+        update(ref(db, 'users/' + uid), { lastSyncTime: now }).catch(()=>{});
+      }
 
       if (user.tonAddress) {
         const fixed = rawToFriendly(user.tonAddress);
@@ -682,7 +905,8 @@ async function init() {
           streak: 0, lastCheckIn: 0, tonConnected: false, tonAddress: '', isVerified: false,
           username: tg.name, handle: tg.username, photo: tg.photo,
           referredBy: referralParam || null, createdAt: Date.now(), lastSyncTime: Date.now(),
-          taskClaims: {}, referrals: 0, verifiedReferrals: 0, referredUsers: {}
+          taskClaims: {}, referrals: 0, verifiedReferrals: 0, referredUsers: {},
+          todayEarned: 0, todayDate: new Date().toISOString().slice(0, 10)
         };
         await set(userRef, user);
         dataLoaded = true;
@@ -701,6 +925,7 @@ async function init() {
       }
     }
 
+    checkDailyReset();
     updateGlobalUI();
     renderMineTab();
     renderMinersTab();
@@ -721,15 +946,89 @@ function updateGlobalUI() {
   $('headerLevel').textContent = lvl;
 }
 
+// Navigation & Sub-Page handling
 window.switchTab = (tabId) => {
+  document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
   const tab = $(`tab-${tabId}`); if (tab) tab.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  currentActiveTab = tabId;
   if (tabId === 'miners') renderMinersTab();
   if (tabId === 'friends') renderFriendsTab();
   if (tabId === 'wallet') { renderWalletTab(); renderHistory(); }
   if (tabId === 'tasks') renderTasks();
   if (tabId === 'mine') renderMineTab();
+};
+
+window.openPage = (pageName) => {
+  document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+  const target = $(`page-${pageName}`);
+  if (target) target.classList.add('active');
+
+  if (pageName === 'withdraw') {
+    $('wdMin').textContent = config.withdrawMin || 500;
+    $('wdRateVal').textContent = config.retPriceTon || 0.001;
+    $('wdGasFeeVal').textContent = config.gasFeePercent ?? 1;
+    $('wdAmount').value = '';
+    $('wdPreview').style.display = 'none';
+    const isVerified = user.isVerified;
+    const has10kHold = (user.balance || 0) >= 10000;
+    const confirmBtn = $('wdConfirmBtn'), warningDiv = $('wdWarning');
+    if (!isVerified && !has10kHold) { warningDiv.style.display = 'block'; confirmBtn.disabled = true; }
+    else { warningDiv.style.display = 'none'; confirmBtn.disabled = false; }
+  } else if (pageName === 'buy') {
+    $('buyRate').textContent = Math.round(1 / (config.retPriceTon || 0.001));
+    $('buyMin').textContent = config.minBuyAmount || 2000;
+    $('buyAmount').value = '';
+    $('buyCost').textContent = '0.00';
+  } else if (pageName === 'verify') {
+    const fee = Number(config.verifyPrice) || 0.05;
+    $('verifyPrice').textContent = fee;
+    $('verifyPriceBtn').textContent = fee;
+  } else if (pageName === 'profile') {
+    renderProfilePage();
+  } else if (pageName === 'settings') {
+    $('toggleSound').checked = appSettings.sound;
+    $('toggleNotif').checked = appSettings.notif;
+  } else if (pageName === 'history') {
+    renderFullHistory();
+  }
+};
+
+window.closeSubPage = () => {
+  document.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
+  switchTab(currentActiveTab || 'wallet');
+};
+
+function renderProfilePage() {
+  const tg = getTelegramUser();
+  $('pPageAvatar').src = user.photo || tg.photo || 'https://i.ibb.co.com/B5qVQ0LN/RET-256x256.png';
+  $('pPageName').textContent = user.username || tg.name;
+  $('pPageHandle').textContent = '@' + (user.handle || tg.username || 'user');
+  $('pPageLevel').textContent = 'Level ' + (user.level || 1);
+  $('pPageTotalMined').textContent = fmt(user.totalMined || 0, 2) + ' RET';
+  $('pPageJoinDate').textContent = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A';
+  $('pPageStatus').textContent = user.isVerified ? '✅ Verified' : (user.verificationStatus === 'pending_audit' ? '⏳ Pending Audit' : '❌ Unverified');
+  $('pPageStatus').style.color = user.isVerified ? 'var(--green)' : (user.verificationStatus === 'pending_audit' ? 'var(--warn)' : 'var(--red)');
+}
+
+window.openProfilePage = () => openPage('profile');
+window.contactSupport = () => {
+  const botOrUser = config.supportUsername || config.botUsername || 'ret_mine_bot';
+  if (window.Telegram?.WebApp?.openTelegramLink) {
+    Telegram.WebApp.openTelegramLink(`https://t.me/${botOrUser}`);
+  } else {
+    window.open(`https://t.me/${botOrUser}`, '_blank');
+  }
+};
+
+window.updateSettings = () => {
+  appSettings.sound = $('toggleSound').checked;
+  appSettings.notif = $('toggleNotif').checked;
+  localStorage.setItem('ret_sound', appSettings.sound);
+  localStorage.setItem('ret_notif', appSettings.notif);
+  showToast('Settings saved');
 };
 
 function renderMineTab() {
@@ -747,7 +1046,17 @@ function updateMineProgress() {
   const amt = localUnclaimed || 0;
   $('unclaimedAmount').textContent = amt.toFixed(5);
   $('unclaimedUsd').textContent = (amt * (config.usdRate || 0.042)).toFixed(4);
-  const minClaim = Number(config.minClaimAmount) || 0.10;
+  const minClaim = Number(config.minClaimAmount) || 0.02;
+
+  // Mini progress bar update
+  const pct = Math.min(100, Math.max(0, (amt / minClaim) * 100));
+  const fill = $('mineClaimProgressFill');
+  if (fill) fill.style.width = `${pct}%`;
+  const pText = $('mineClaimProgressText');
+  if (pText) {
+    pText.textContent = amt >= minClaim ? `Ready to claim (${minClaim} RET)` : `${pct.toFixed(0)}% to Min Claim (${minClaim} RET)`;
+  }
+
   const btn = $('claimBtn');
   if (isClaimingMining) { btn.textContent = 'Processing...'; btn.disabled = true; }
   else if (amt >= minClaim) { btn.textContent = `Claim ${amt.toFixed(4)} RET`; btn.disabled = false; }
@@ -769,7 +1078,7 @@ setInterval(async () => {
 window.claimMining = async () => {
   if (isClaimingMining) return;
   const amt = calcUnclaimed();
-  const minClaim = Number(config.minClaimAmount) || 0.10;
+  const minClaim = Number(config.minClaimAmount) || 0.02;
   if (amt < minClaim) return showToast(`Minimum ${minClaim} RET needed`, true);
 
   const adTask = (config.tasks || []).find(t => t.type === 'ad_task');
@@ -808,6 +1117,7 @@ window.claimMining = async () => {
       user.balance = (Number(user.balance) || 0) + claimedAmt;
       user.unclaimed = 0;
       user.totalMined = (Number(user.totalMined) || 0) + claimedAmt;
+      await addTodayEarned(claimedAmt);
       showToast(`Claimed ${claimedAmt.toFixed(4)} RET!`);
       push(ref(db, 'history/' + uid), { type: 'Mining Claim', amount: claimedAmt, date: Date.now() });
       updateGlobalUI(); renderMineTab();
@@ -827,19 +1137,21 @@ async function recordTaskClaim(taskId, limit, cooldownHours) {
   const newCount = shouldReset ? 1 : current.count + 1;
   await update(ref(db, 'users/' + uid), {
     [`taskClaims/${taskId}/count`]: newCount,
-    [`taskClaims/${taskId}/lastTime`]: now
+    [`taskClaims/${taskId}/lastTime`]: now,
+    [`taskClaims/${taskId}/pendingTime`]: null
   });
   if (!user.taskClaims) user.taskClaims = {};
-  user.taskClaims[taskId] = { count: newCount, lastTime: now };
+  user.taskClaims[taskId] = { count: newCount, lastTime: now, pendingTime: null };
 }
 
 async function recordOneTimeTask(taskId) {
   await update(ref(db, 'users/' + uid), {
     [`taskClaims/${taskId}/done`]: true,
-    [`taskClaims/${taskId}/lastTime`]: Date.now()
+    [`taskClaims/${taskId}/lastTime`]: Date.now(),
+    [`taskClaims/${taskId}/pendingTime`]: null
   });
   if (!user.taskClaims) user.taskClaims = {};
-  user.taskClaims[taskId] = { ...(user.taskClaims[taskId] || {}), done: true, lastTime: Date.now() };
+  user.taskClaims[taskId] = { ...(user.taskClaims[taskId] || {}), done: true, lastTime: Date.now(), pendingTime: null };
 }
 
 function renderTasks() {
@@ -875,25 +1187,31 @@ function renderTasks() {
   tasks.forEach(task => {
     const isAd = task.type === 'ad_task';
     const isOneTime = task.type === 'one_time_task';
-    const claimData = userClaims[task.id] || { count: 0, lastTime: 0 };
+    const claimData = userClaims[task.id] || { count: 0, lastTime: 0, pendingTime: 0 };
     let canClaim = true, btnText = isAd ? 'Watch' : 'Start';
-    let statusText = isOneTime ? 'One-time task' : `${claimData.count}/${task.limit || 1} completed`;
+    let statusText = isOneTime ? 'One-time task' : `${claimData.count || 0}/${task.limit || 1} completed`;
+    let btnExtraClass = '';
 
     if (isOneTime && claimData.done) {
       canClaim = false; btnText = 'Done ✓';
       statusText = 'Completed — One-time';
-    } else if (!isOneTime && claimData.count >= (task.limit || 1)) {
-      const hoursPassed = (Date.now() - claimData.lastTime) / (1000 * 60 * 60);
+    } else if (!isOneTime && (claimData.count || 0) >= (task.limit || 1)) {
+      const hoursPassed = (Date.now() - (claimData.lastTime || 0)) / (1000 * 60 * 60);
       if (hoursPassed < (task.cooldown || 24)) {
         canClaim = false; const remain = Math.ceil((task.cooldown || 24) - hoursPassed);
         btnText = `${remain}h`; statusText = `Cooldown · Next in ${remain}h`;
       } else { statusText = 'Ready to claim'; }
+    } else if (!isAd && claimData.pendingTime) {
+      // ✅ Legal task pending claim logic
+      btnText = 'Claim Reward';
+      btnExtraClass = 'claim-ready';
+      statusText = 'Task opened · Ready to claim!';
     }
 
     const iconColor = isAd ? 'linear-gradient(135deg,#8B5CF6,#7C3AED)' : (isOneTime ? 'linear-gradient(135deg,#F59E0B,#D97706)' : 'linear-gradient(135deg,#3B82F6,#2563EB)');
     const action = isAd
       ? `watchAd('${esc(task.id)}','${esc(task.zoneId || '')}',${task.reward})`
-      : `doLegalTask('${esc(task.id)}','${esc(task.link || '')}',${task.reward},${isOneTime})`;
+      : `handleLegalTaskClick('${esc(task.id)}','${esc(task.link || '')}',${task.reward},${isOneTime})`;
     const icon = isAd
       ? '<svg class="icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>'
       : (isOneTime ? '<svg class="icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>' : '<svg class="icon" viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1z"/></svg>');
@@ -908,7 +1226,7 @@ function renderTasks() {
             <div class="task-status">${statusText}</div>
           </div>
         </div>
-        <button class="task-btn" ${canClaim ? '' : 'disabled'} onclick="${action}">${btnText}</button>
+        <button class="task-btn ${btnExtraClass}" ${canClaim ? '' : 'disabled'} onclick="${action}">${btnText}</button>
       </div>`;
   });
   $('tasksList').innerHTML = html;
@@ -924,38 +1242,67 @@ window.claimDailyCheckin = async () => {
   const reward = [5, 10, 15, 20, 25, 30, 50][rewardIdx] || 5;
   await update(ref(db, 'users/' + uid), { balance: (user.balance || 0) + reward, streak: newStreak, lastCheckIn: now });
   user.balance = (user.balance || 0) + reward; user.streak = newStreak; user.lastCheckIn = now;
+  await addTodayEarned(reward);
   showToast(`Claimed +${reward} RET!`);
   push(ref(db, 'history/' + uid), { type: 'Daily Check-in', amount: reward, date: now });
   updateGlobalUI(); renderTasks();
 };
 
-window.doLegalTask = async (taskId, link, reward, isOneTime = false) => {
-  if (claimingTasks.has(taskId)) return;
+// ✅ Handle Legal Task Start & Claim Click
+window.handleLegalTaskClick = async (taskId, link, reward, isOneTime = false) => {
+  const claimData = (user.taskClaims && user.taskClaims[taskId]) || {};
+  if (claimData.pendingTime) {
+    // User returned and is claiming reward now
+    await finishLegalTaskClaim(taskId, reward, isOneTime);
+  } else {
+    // User is starting task
+    await startLegalTask(taskId, link);
+  }
+};
+
+async function startLegalTask(taskId, link) {
   if (!link || !/^https?:\/\//.test(link)) return showToast('Invalid task link', true);
+  try {
+    const now = Date.now();
+    await update(ref(db, `users/${uid}/taskClaims/${taskId}/pendingTime`), now);
+    if (!user.taskClaims) user.taskClaims = {};
+    if (!user.taskClaims[taskId]) user.taskClaims[taskId] = {};
+    user.taskClaims[taskId].pendingTime = now;
+    if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(link); else window.open(link, '_blank');
+    showToast('Task started! Return to app to claim.');
+    renderTasks();
+  } catch(e) {
+    showToast('Failed: ' + e.message, true);
+  }
+}
+
+async function finishLegalTaskClaim(taskId, reward, isOneTime) {
+  if (claimingTasks.has(taskId)) return;
   claimingTasks.add(taskId);
   try {
-    if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(link); else window.open(link, '_blank');
-    showToast('Complete the task, reward will be added shortly...');
-    setTimeout(async () => {
-      const task = (config.tasks || []).find(t => t.id === taskId);
-      if (!task) { claimingTasks.delete(taskId); return; }
-      await update(ref(db, 'users/' + uid), {
-        balance: (user.balance || 0) + reward,
-        totalMined: (user.totalMined || 0) + reward
-      });
-      user.balance = (user.balance || 0) + reward; user.totalMined = (user.totalMined || 0) + reward;
-      if (user.referredBy) {
-        await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (m) => (m || 0) + reward);
-      }
-      if (isOneTime) await recordOneTimeTask(taskId);
-      else await recordTaskClaim(taskId, task.limit || 1, task.cooldown || 24);
-      showToast(`Task completed! +${reward} RET`);
-      push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
-      updateGlobalUI(); renderTasks();
-      claimingTasks.delete(taskId);
-    }, 3000);
-  } catch (e) { claimingTasks.delete(taskId); showToast('Error: ' + e.message, true); }
-};
+    const task = (config.tasks || []).find(t => t.id === taskId);
+    if (!task) { claimingTasks.delete(taskId); return; }
+    await update(ref(db, 'users/' + uid), {
+      balance: (user.balance || 0) + reward,
+      totalMined: (user.totalMined || 0) + reward
+    });
+    user.balance = (user.balance || 0) + reward; user.totalMined = (user.totalMined || 0) + reward;
+    if (user.referredBy) {
+      await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (m) => (m || 0) + reward);
+    }
+    if (isOneTime) await recordOneTimeTask(taskId);
+    else await recordTaskClaim(taskId, task.limit || 1, task.cooldown || 24);
+
+    await addTodayEarned(reward);
+    showToast(`Task completed! +${reward} RET`);
+    push(ref(db, 'history/' + uid), { type: 'Task Reward', amount: reward, date: Date.now() });
+    updateGlobalUI(); renderTasks();
+  } catch (e) {
+    showToast('Error: ' + e.message, true);
+  } finally {
+    claimingTasks.delete(taskId);
+  }
+}
 
 function loadMonetagZone(zoneId) {
   return new Promise((resolve, reject) => {
@@ -1028,6 +1375,7 @@ window.watchAd = async (taskId, zoneId, reward) => {
       await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (m) => (m || 0) + reward);
     }
     await recordTaskClaim(taskId, task?.limit || 1, task?.cooldown || 24);
+    await addTodayEarned(reward);
     showToast(`+${reward} RET earned!`);
     push(ref(db, 'history/' + uid), { type: 'Ad Reward', amount: reward, date: Date.now() });
     updateGlobalUI(); renderTasks();
@@ -1042,7 +1390,7 @@ function renderMinersTab() {
   const peak = Math.max(currentLvl, user.peakLevel || currentLvl);
   $('lvlCurrent').textContent = currentLvl;
   $('lvlPeak').textContent = peak;
-  $('todayPnL').textContent = '+' + (user._todayEarned || 0).toFixed(1);
+  $('todayPnL').textContent = '+' + (user.todayEarned || 0).toFixed(2);
 
   const nextLvl = currentLvl + 1;
   const neededForNext = (nextLvl * base) - bal;
@@ -1130,6 +1478,7 @@ window.claimSquadCommission = async () => {
         user.referredUsers[refId].lastClaimedMined = user.referredUsers[refId].totalMined || 0;
       });
     }
+    await addTodayEarned(amt);
     showToast(`Claimed ${amt.toFixed(2)} RET!`);
     push(ref(db, 'history/' + uid), { type: 'Squad Commission', amount: amt, date: Date.now() });
     updateGlobalUI(); renderFriendsTab(); renderWalletTab();
@@ -1204,8 +1553,29 @@ function renderWalletTab() {
           <div style="font-size:13px;font-weight:600;color:var(--sub);">Verify for <b style="color:var(--warn);">${fee} TON</b> to enable withdrawals.</div>
         </div>
       </div>
-      <button class="btn-primary" style="height:48px;font-size:15px;" onclick="openVerify()">Verify Now</button>`;
+      <button class="btn-primary" style="height:48px;font-size:15px;" onclick="openPage('verify')">Verify Now</button>`;
   }
+}
+
+function buildHistoryHtml(items) {
+  let html = '';
+  items.forEach(i => {
+    const d = new Date(i.date).toLocaleString();
+    const isPositive = i.amount > 0;
+    const amtColor = isPositive ? 'var(--green)' : (i.amount < 0 ? 'var(--red)' : 'var(--sub)');
+    const iconColor = isPositive ? 'var(--green)' : 'var(--red)';
+    const bgColor = isPositive ? '#D1FAE5' : '#FEE2E2';
+    let svgIcon = '<path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>';
+    if (i.type.includes('Deposit') || i.type.includes('Bought')) svgIcon = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>';
+    if (i.type.includes('Withdraw')) svgIcon = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>';
+    if (i.type.includes('Mining')) svgIcon = '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>';
+    html += `<div class="history-list-item">
+      <div class="history-info"><div class="history-icon" style="background:${bgColor};color:${iconColor};"><svg class="icon" viewBox="0 0 24 24">${svgIcon}</svg></div>
+        <div class="history-text"><h4>${esc(i.type)}</h4><p>${esc(d)}</p></div></div>
+      <div class="history-amount"><h4 style="color:${amtColor}">${i.amount > 0 ? '+' : ''}${fmt(i.amount, 2)}</h4><p>RET</p></div>
+    </div>`;
+  });
+  return html;
 }
 
 function renderHistory() {
@@ -1214,26 +1584,28 @@ function renderHistory() {
   historyUnsub = onValue(hRef, snap => {
     let html = '';
     if (snap.exists()) {
-      const items = Object.values(snap.val()).sort((a,b) => b.date - a.date).slice(0, 20);
-      items.forEach(i => {
-        const d = new Date(i.date).toLocaleString();
-        const isPositive = i.amount > 0;
-        const amtColor = isPositive ? 'var(--green)' : (i.amount < 0 ? 'var(--red)' : 'var(--sub)');
-        const iconColor = isPositive ? 'var(--green)' : 'var(--red)';
-        const bgColor = isPositive ? '#D1FAE5' : '#FEE2E2';
-        let svgIcon = '<path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>';
-        if (i.type.includes('Deposit') || i.type.includes('Bought')) svgIcon = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>';
-        if (i.type.includes('Withdraw')) svgIcon = '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z"/>';
-        if (i.type.includes('Mining')) svgIcon = '<path d="M13 10V3L4 14h7v7l9-11h-7z"/>';
-        html += `<div class="history-list-item">
-          <div class="history-info"><div class="history-icon" style="background:${bgColor};color:${iconColor};"><svg class="icon" viewBox="0 0 24 24">${svgIcon}</svg></div>
-            <div class="history-text"><h4>${esc(i.type)}</h4><p>${esc(d)}</p></div></div>
-          <div class="history-amount"><h4 style="color:${amtColor}">${i.amount > 0 ? '+' : ''}${fmt(i.amount, 2)}</h4><p>RET</p></div>
-        </div>`;
-      });
+      // Last 5 items in Wallet tab
+      const items = Object.values(snap.val()).sort((a,b) => b.date - a.date).slice(0, 5);
+      html = buildHistoryHtml(items);
     }
     $('historyList').innerHTML = html || '<div style="text-align:center;padding:20px;color:var(--sub);font-weight:600;">No history yet.</div>';
   });
+}
+
+async function renderFullHistory() {
+  const el = $('fullHistoryList');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);font-weight:600;">Loading...</div>';
+  try {
+    const snap = await get(ref(db, 'history/' + uid));
+    if (snap.exists()) {
+      const items = Object.values(snap.val()).sort((a,b) => b.date - a.date);
+      el.innerHTML = buildHistoryHtml(items) || '<div style="text-align:center;padding:20px;color:var(--sub);font-weight:600;">No history found.</div>';
+    } else {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--sub);font-weight:600;">No history found.</div>';
+    }
+  } catch(e) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--red);font-weight:600;">Failed to load history</div>';
+  }
 }
 
 async function sendTonPayment(amountTon, comment) {
@@ -1256,19 +1628,7 @@ async function sendTonPayment(amountTon, comment) {
   }
 }
 
-window.openVerify = () => {
-  if (!user.tonConnected) { openTonConnect(); return; }
-  if (user.isVerified) { showToast('Already verified!'); return; }
-  if (user.verificationStatus === 'pending_audit') { showToast('Verification already pending admin review.', true); return; }
-  const fee = Number(config.verifyPrice) || 0.05;
-  $('verifyPrice').textContent = fee;
-  $('verifyPriceBtn').textContent = fee;
-  $('verifyModal').classList.add('show');
-};
-window.closeVerify = () => $('verifyModal').classList.remove('show');
-
 window.payVerify = async () => {
-  closeVerify();
   const fee = Number(config.verifyPrice) || 0.05;
   const code = shortCode();
   const memo = `RET-VERIFY-${code}`;
@@ -1289,7 +1649,6 @@ window.payVerify = async () => {
     return;
   }
 
-  // ✅ FIXED: NO isVerified: true — admin must confirm
   await update(ref(db, 'users/' + uid), {
     verificationCode: code,
     verificationMemo: memo,
@@ -1299,29 +1658,22 @@ window.payVerify = async () => {
   user.verificationCode = code;
   user.verificationMemo = memo;
   user.verificationStatus = 'pending_audit';
-  // user.isVerified = true; ← REMOVED (was the bug!)
 
   showToast('✅ Payment sent! Admin will verify shortly.');
+  closeSubPage();
   renderWalletTab(); renderFriendsTab();
 };
 
-window.openBuyRET = () => {
-  if (!user.tonConnected) { showToast('Connect TON first', true); openTonConnect(); return; }
-  $('buyRate').textContent = Math.round(1 / (config.retPriceTon || 0.001));
-  $('buyMin').textContent = config.minBuyAmount || 2000;
-  $('buyModal').classList.add('show');
-};
-window.closeBuy = () => $('buyModal').classList.remove('show');
 window.calcBuyCost = () => {
   const amt = parseFloat($('buyAmount').value) || 0;
   $('buyCost').textContent = (amt * (config.retPriceTon || 0.001)).toFixed(4);
 };
+
 window.confirmBuy = async () => {
   const amt = parseFloat($('buyAmount').value);
   const minBuy = Number(config.minBuyAmount) || 2000;
   if (!amt || amt < minBuy) return showToast(`Minimum ${minBuy} RET required`, true);
   const costTon = amt * (config.retPriceTon || 0.001);
-  closeBuy();
   const code = shortCode();
   const memo = `RET-BUY-${code}`;
   const res = await sendTonPayment(costTon, memo);
@@ -1331,29 +1683,11 @@ window.confirmBuy = async () => {
     await push(ref(db, 'transactions'), { uid, code, memo, amount: amt, tonAmount: costTon, date: Date.now(), type: 'deposit', status: 'pending_audit' });
     await push(ref(db, 'history/' + uid), { type: 'Bought RET', amount: amt, date: Date.now() });
     showToast(`Bought ${amt} RET!`);
+    closeSubPage();
     updateGlobalUI(); renderWalletTab();
   }
 };
 
-window.openWithdraw = () => {
-  if (!user.tonConnected) { showToast('Connect TON wallet first', true); openTonConnect(); return; }
-  $('wdMin').textContent = config.withdrawMin;
-  // ✅ Show rate + gas fee
-  const rate = config.retPriceTon || 0.001;
-  const gasFee = config.gasFeePercent ?? 1;
-  $('wdRateVal').textContent = rate;
-  $('wdGasFeeVal').textContent = gasFee;
-  $('wdAmount').value = '';
-  $('wdPreview').style.display = 'none';
-  $('withdrawModal').classList.add('show');
-  const isVerified = user.isVerified;
-  const has10kHold = (user.balance || 0) >= 10000;
-  const confirmBtn = $('wdConfirmBtn'), warningDiv = $('wdWarning');
-  if (!isVerified && !has10kHold) { warningDiv.style.display = 'block'; confirmBtn.disabled = true; }
-  else { warningDiv.style.display = 'none'; confirmBtn.disabled = false; }
-};
-
-// ✅ NEW: Live preview of TON amount user will receive
 window.updateWdPreview = () => {
   const amt = parseFloat($('wdAmount').value) || 0;
   const rate = config.retPriceTon || 0.001;
@@ -1370,8 +1704,8 @@ window.updateWdPreview = () => {
   }
 };
 
-window.closeWithdraw = () => $('withdrawModal').classList.remove('show');
 window.confirmWithdraw = async () => {
+  if (!user.tonConnected) { showToast('Connect TON wallet first', true); openTonConnect(); return; }
   const amt = parseFloat($('wdAmount').value);
   const min = Number(config.withdrawMin) || 500;
   if (!user.isVerified && (user.balance || 0) < 10000) return showToast('You must verify or hold 10,000 RET to withdraw.', true);
@@ -1388,7 +1722,8 @@ window.confirmWithdraw = async () => {
       username: user.username || 'User', handle: user.handle || 'user'
     });
     await push(ref(db, 'history/' + uid), { type: 'Withdraw Request', amount: -amt, date: Date.now() });
-    closeWithdraw(); showToast('Withdrawal requested!');
+    closeSubPage();
+    showToast('Withdrawal requested!');
     updateGlobalUI(); renderWalletTab();
   } catch (e) { showToast('Failed: ' + e.message, true); }
 };
