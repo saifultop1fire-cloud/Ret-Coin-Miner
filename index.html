@@ -1132,26 +1132,29 @@ window.claimMining = async () => {
 async function recordTaskClaim(taskId, limit, cooldownHours) {
   const current = (user.taskClaims && user.taskClaims[taskId]) || { count: 0, lastTime: 0 };
   const now = Date.now();
-  const hoursPassed = (now - current.lastTime) / (1000 * 60 * 60);
-  const shouldReset = current.count >= limit && hoursPassed >= cooldownHours;
-  const newCount = shouldReset ? 1 : current.count + 1;
-  await update(ref(db, 'users/' + uid), {
-    [`taskClaims/${taskId}/count`]: newCount,
-    [`taskClaims/${taskId}/lastTime`]: now,
-    [`taskClaims/${taskId}/pendingTime`]: null
-  });
+  const hoursPassed = (now - (current.lastTime || 0)) / (1000 * 60 * 60);
+  const shouldReset = (current.count || 0) >= limit && hoursPassed >= cooldownHours;
+  const newCount = shouldReset ? 1 : (current.count || 0) + 1;
+  const claimData = {
+    count: newCount,
+    lastTime: now,
+    pendingTime: 0
+  };
+  await set(ref(db, `users/${uid}/taskClaims/${taskId}`), claimData);
   if (!user.taskClaims) user.taskClaims = {};
-  user.taskClaims[taskId] = { count: newCount, lastTime: now, pendingTime: null };
+  user.taskClaims[taskId] = claimData;
 }
 
 async function recordOneTimeTask(taskId) {
-  await update(ref(db, 'users/' + uid), {
-    [`taskClaims/${taskId}/done`]: true,
-    [`taskClaims/${taskId}/lastTime`]: Date.now(),
-    [`taskClaims/${taskId}/pendingTime`]: null
-  });
+  const now = Date.now();
+  const claimData = {
+    done: true,
+    lastTime: now,
+    pendingTime: 0
+  };
+  await set(ref(db, `users/${uid}/taskClaims/${taskId}`), claimData);
   if (!user.taskClaims) user.taskClaims = {};
-  user.taskClaims[taskId] = { ...(user.taskClaims[taskId] || {}), done: true, lastTime: Date.now(), pendingTime: null };
+  user.taskClaims[taskId] = claimData;
 }
 
 function renderTasks() {
@@ -1202,7 +1205,7 @@ function renderTasks() {
         btnText = `${remain}h`; statusText = `Cooldown · Next in ${remain}h`;
       } else { statusText = 'Ready to claim'; }
     } else if (!isAd && claimData.pendingTime) {
-      // ✅ Legal task pending claim logic
+      // ✅ Legal / One-time task pending claim state
       btnText = 'Claim Reward';
       btnExtraClass = 'claim-ready';
       statusText = 'Task opened · Ready to claim!';
@@ -1248,15 +1251,17 @@ window.claimDailyCheckin = async () => {
   updateGlobalUI(); renderTasks();
 };
 
-// ✅ Handle Legal Task Start & Claim Click
+// ✅ Handle Legal & One-Time Task Click
 window.handleLegalTaskClick = async (taskId, link, reward, isOneTime = false) => {
+  let finalLink = (link || '').trim();
+  if (finalLink && !/^https?:\/\//i.test(finalLink)) {
+    finalLink = 'https://' + finalLink;
+  }
   const claimData = (user.taskClaims && user.taskClaims[taskId]) || {};
   if (claimData.pendingTime) {
-    // User returned and is claiming reward now
     await finishLegalTaskClaim(taskId, reward, isOneTime);
   } else {
-    // User is starting task
-    await startLegalTask(taskId, link);
+    await startLegalTask(taskId, finalLink);
   }
 };
 
@@ -1264,11 +1269,16 @@ async function startLegalTask(taskId, link) {
   if (!link || !/^https?:\/\//.test(link)) return showToast('Invalid task link', true);
   try {
     const now = Date.now();
-    await update(ref(db, `users/${uid}/taskClaims/${taskId}/pendingTime`), now);
+    // ✅ FIXED: Using set() on leaf node instead of update()
+    await set(ref(db, `users/${uid}/taskClaims/${taskId}/pendingTime`), now);
     if (!user.taskClaims) user.taskClaims = {};
     if (!user.taskClaims[taskId]) user.taskClaims[taskId] = {};
     user.taskClaims[taskId].pendingTime = now;
-    if (window.Telegram?.WebApp?.openLink) Telegram.WebApp.openLink(link); else window.open(link, '_blank');
+    if (window.Telegram?.WebApp?.openLink) {
+      try { Telegram.WebApp.openLink(link); } catch(err) { window.open(link, '_blank'); }
+    } else {
+      window.open(link, '_blank');
+    }
     showToast('Task started! Return to app to claim.');
     renderTasks();
   } catch(e) {
@@ -1286,7 +1296,8 @@ async function finishLegalTaskClaim(taskId, reward, isOneTime) {
       balance: (user.balance || 0) + reward,
       totalMined: (user.totalMined || 0) + reward
     });
-    user.balance = (user.balance || 0) + reward; user.totalMined = (user.totalMined || 0) + reward;
+    user.balance = (user.balance || 0) + reward; 
+    user.totalMined = (user.totalMined || 0) + reward;
     if (user.referredBy) {
       await runTransaction(ref(db, `users/${user.referredBy}/referredUsers/${uid}/totalMined`), (m) => (m || 0) + reward);
     }
